@@ -1,0 +1,22 @@
+.anchor-pane {
+    -fx-background-image: url("game-background.png");
+    -fx-background-size: 1280px 720px;
+    -fx-background-position: 0 0;
+    -fx-background-repeat: no-repeat;
+}
+
+.grid-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.grid-pane .grid-line {
+    -fx-stroke: rgba(0, 0, 0, 0.3);
+}
+
+.pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+}

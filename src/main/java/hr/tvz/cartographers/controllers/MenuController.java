@@ -1,5 +1,6 @@
-package hr.tvz.cartographers;
+package hr.tvz.cartographers.controllers;
 
+import hr.tvz.cartographers.CartographersApplication;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
