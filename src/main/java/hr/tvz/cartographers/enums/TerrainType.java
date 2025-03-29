@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum TerrainType {
+
     EMPTY("transparent"),
     FOREST("#228B22"),
     VILLAGE("#DAA520"),

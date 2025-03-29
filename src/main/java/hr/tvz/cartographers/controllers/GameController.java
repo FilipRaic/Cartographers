@@ -1,8 +1,10 @@
 package hr.tvz.cartographers.controllers;
 
+import hr.tvz.cartographers.enums.Shape;
 import hr.tvz.cartographers.enums.TerrainType;
 import hr.tvz.cartographers.models.Edict;
 import hr.tvz.cartographers.models.ExploreCard;
+import hr.tvz.cartographers.utils.EdictGenerator;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -10,11 +12,16 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class GameController {
+
+    private static final Integer GRID_ROWS = 11;
+    private static final Integer GRID_COLUMNS = 11;
 
     @FXML
     private GridPane gameGrid;
@@ -29,27 +36,17 @@ public class GameController {
     @FXML
     private Label edictLabel;
 
-    // Map state
-    private final TerrainType[][] terrainTypeMap = new TerrainType[11][11];
-    private final boolean[][] isRuins = new boolean[11][11];
+    private static final List<Edict> edicts = EdictGenerator.generateEdicts();
+    private static final List<Shape> shapes = Shape.list();
+
+    private final TerrainType[][] terrainTypeMap = new TerrainType[GRID_ROWS][GRID_COLUMNS];
+    private final boolean[][] isRuins = new boolean[GRID_ROWS][GRID_COLUMNS];
     private int coinCount = 0;
     private int score = 0;
     private int currentSeason = 0;
     private final String[] seasons = {"Spring", "Summer", "Fall", "Winter"};
     private final int[] seasonThresholds = {8, 7, 6, 5};
     private int currentTime = 0;
-
-    // Shape definitions
-    private final List<List<int[]>> baseShapes = List.of(
-            List.of(new int[]{0, 0}), // Single
-            List.of(new int[]{0, 0}, new int[]{0, 1}), // Line 2
-            List.of(new int[]{0, 0}, new int[]{0, 1}, new int[]{0, 2}), // Line 3
-            List.of(new int[]{0, 0}, new int[]{0, 1}, new int[]{1, 0}, new int[]{1, 1}), // Square
-            List.of(new int[]{0, 0}, new int[]{0, 1}, new int[]{0, -1}, new int[]{1, 0}), // T
-            List.of(new int[]{0, 0}, new int[]{0, 1}, new int[]{1, -1}, new int[]{1, 0}), // S
-            List.of(new int[]{0, 0}, new int[]{0, -1}, new int[]{1, 0}, new int[]{1, 1}), // Z
-            List.of(new int[]{0, 0}, new int[]{1, 0}, new int[]{2, 0}, new int[]{2, -1}) // L
-    );
 
     private List<List<int[]>> allUniqueShapes;
     private List<int[]> currentShape;
@@ -61,76 +58,13 @@ public class GameController {
     private List<ExploreCard> exploreDeck;
     private ExploreCard currentCard;
 
-    // Edict cards (simplified scoring rules)
-    private final List<Edict> edicts = new ArrayList<>(List.of(
-            new Edict("A - The Queen's Arbors", map -> {
-                int points = 0;
-                boolean[][] visited = new boolean[11][11]; // To avoid modifying the map
-                for (int i = 0; i < 11; i++) {
-                    for (int j = 0; j < 11; j++) {
-                        if (map[i][j] == TerrainType.FOREST && !visited[i][j]) {
-                            int size = getClusterSize(i, j, TerrainType.FOREST, map, visited);
-                            points += size <= 3 ? size : 0;
-                        }
-                    }
-                }
-                return points;
-            }),
-            new Edict("B - Canal Lake", map -> {
-                int points = 0;
-                for (int i = 0; i < 11; i++) {
-                    for (int j = 0; j < 11; j++) {
-                        if (map[i][j] == TerrainType.WATER) {
-                            if ((i > 0 && map[i - 1][j] == TerrainType.FARM) ||
-                                    (i < 10 && map[i + 1][j] == TerrainType.FARM) ||
-                                    (j > 0 && map[i][j - 1] == TerrainType.FARM) ||
-                                    (j < 10 && map[i][j + 1] == TerrainType.FARM)) {
-                                points += 2;
-                            }
-                        }
-                    }
-                }
-                return points;
-            }),
-            new Edict("C - Wildholds", map -> {
-                int points = 0;
-                boolean[][] visited = new boolean[11][11];
-                for (int i = 0; i < 11; i++) {
-                    for (int j = 0; j < 11; j++) {
-                        if (map[i][j] == TerrainType.VILLAGE && !visited[i][j]) {
-                            int size = getClusterSize(i, j, TerrainType.VILLAGE, map, visited);
-                            if (size >= 6) points += 8; // Per rulebook: 8 points per cluster of 6+ village spaces
-                        }
-                    }
-                }
-                return points;
-            }),
-            new Edict("D - Greengold Plains", map -> {
-                int points = 0;
-                for (int i = 0; i < 11; i++) {
-                    for (int j = 0; j < 11; j++) {
-                        if (map[i][j] != TerrainType.EMPTY && map[i][j] != TerrainType.MOUNTAIN) {
-                            Set<TerrainType> adjacentTypes = new HashSet<>();
-                            if (i > 0 && map[i - 1][j] != TerrainType.EMPTY) adjacentTypes.add(map[i - 1][j]);
-                            if (i < 10 && map[i + 1][j] != TerrainType.EMPTY) adjacentTypes.add(map[i + 1][j]);
-                            if (j > 0 && map[i][j - 1] != TerrainType.EMPTY) adjacentTypes.add(map[i][j - 1]);
-                            if (j < 10 && map[i][j + 1] != TerrainType.EMPTY) adjacentTypes.add(map[i][j + 1]);
-                            if (adjacentTypes.size() >= 3)
-                                points += 3; // 3 points per space adjacent to 3+ terrain types
-                        }
-                    }
-                }
-                return points;
-            })
-    ));
-
     private final List<Edict> currentEdicts = new ArrayList<>();
 
     @FXML
     public void initialize() {
         // Initialize map
-        for (int i = 0; i < 11; i++) {
-            for (int j = 0; j < 11; j++) {
+        for (int i = 0; i < GRID_ROWS; i++) {
+            for (int j = 0; j < GRID_COLUMNS; j++) {
                 terrainTypeMap[i][j] = TerrainType.EMPTY;
                 isRuins[i][j] = false;
             }
@@ -139,8 +73,8 @@ public class GameController {
         // Randomly place mountains
         int mountainsPlaced = 0;
         while (mountainsPlaced < 5) {
-            int row = random.nextInt(11);
-            int col = random.nextInt(11);
+            int row = random.nextInt(GRID_ROWS);
+            int col = random.nextInt(GRID_COLUMNS);
             if (terrainTypeMap[row][col] == TerrainType.EMPTY) {
                 terrainTypeMap[row][col] = TerrainType.MOUNTAIN;
                 mountainsPlaced++;
@@ -150,8 +84,8 @@ public class GameController {
         // Randomly place ruins
         int ruinsPlaced = 0;
         while (ruinsPlaced < 5) {
-            int row = random.nextInt(11);
-            int col = random.nextInt(11);
+            int row = random.nextInt(GRID_ROWS);
+            int col = random.nextInt(GRID_COLUMNS);
             if (terrainTypeMap[row][col] == TerrainType.EMPTY && !isRuins[row][col]) {
                 isRuins[row][col] = true;
                 ruinsPlaced++;
@@ -177,6 +111,45 @@ public class GameController {
 
         // Initialize UI
         updateUI();
+    }
+
+    @FXML
+    protected void onMouseHover(MouseEvent event) {
+        if (currentSeason >= 4) return; // Ignore if game is over
+        Pane hoveredPane = (Pane) event.getSource();
+        Integer row = GridPane.getRowIndex(hoveredPane);
+        Integer col = GridPane.getColumnIndex(hoveredPane);
+        if (row == null || col == null || currentShape == null) return;
+        drawShape(row, col, true);
+    }
+
+    @FXML
+    protected void onMouseExit(MouseEvent event) {
+        if (currentSeason >= 4) return; // Ignore if game is over
+        Pane hoveredPane = (Pane) event.getSource();
+        Integer row = GridPane.getRowIndex(hoveredPane);
+        Integer col = GridPane.getColumnIndex(hoveredPane);
+        if (row == null || col == null || currentShape == null) return;
+        drawShape(row, col, false);
+    }
+
+    @FXML
+    protected void onMouseClick(MouseEvent event) {
+        if (currentSeason >= 4) return; // Ignore if game is over
+        Pane clickedPane = (Pane) event.getSource();
+        Integer row = GridPane.getRowIndex(clickedPane);
+        Integer col = GridPane.getColumnIndex(clickedPane);
+        if (row == null || col == null || currentShape == null || currentTerrain == null) return;
+
+        int adjustedBaseRow = adjustCoordinate(row, currentShape.stream().mapToInt(o -> o[0]).min().orElse(0), currentShape.stream().mapToInt(o -> o[0]).max().orElse(0));
+        int adjustedBaseCol = adjustCoordinate(col, currentShape.stream().mapToInt(o -> o[1]).min().orElse(0), currentShape.stream().mapToInt(o -> o[1]).max().orElse(0));
+
+        boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol);
+        if (isLegal) {
+            placeShape(adjustedBaseRow, adjustedBaseCol);
+            if (ruinsPending) ruinsPending = false;
+            drawNextCard();
+        }
     }
 
     private void updateMapVisuals() {
@@ -207,8 +180,8 @@ public class GameController {
         Set<String> seen = new HashSet<>();
         List<List<int[]>> uniqueShapes = new ArrayList<>();
 
-        for (List<int[]> baseShape : baseShapes) {
-            List<int[]> current = baseShape;
+        for (Shape shape : shapes) {
+            List<int[]> current = shape.getBlocks();
             for (int rot = 0; rot < 4; rot++) {
                 List<int[]> rotated = current;
                 List<int[]> normalizedRotated = normalize(rotated);
@@ -309,13 +282,13 @@ public class GameController {
         int baseCol = corner % 2 == 0 ? 0 : 10;
         boolean placed = false;
 
-        for (int r = 0; r < 11 && !placed; r++) {
-            for (int c = 0; c < 11 && !placed; c++) {
+        for (int r = 0; r < GRID_ROWS && !placed; r++) {
+            for (int c = 0; c < GRID_COLUMNS && !placed; c++) {
                 boolean canPlace = true;
                 for (int[] offset : ambushShape) {
                     int newRow = baseRow + r + offset[0];
                     int newCol = baseCol + c + offset[1];
-                    if (newRow < 0 || newRow >= 11 || newCol < 0 || newCol >= 11 || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
+                    if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
                         canPlace = false;
                         break;
                     }
@@ -337,16 +310,18 @@ public class GameController {
 
     private void endSeason() {
         int seasonScore = currentEdicts.get(0).score(terrainTypeMap) + currentEdicts.get(1).score(terrainTypeMap);
-        for (int i = 0; i < 11; i++) {
-            for (int j = 0; j < 11; j++) {
-                if (terrainTypeMap[i][j] == TerrainType.MONSTER) {
-                    if (i > 0 && terrainTypeMap[i - 1][j] == TerrainType.EMPTY) seasonScore--;
-                    if (i < 10 && terrainTypeMap[i + 1][j] == TerrainType.EMPTY) seasonScore--;
-                    if (j > 0 && terrainTypeMap[i][j - 1] == TerrainType.EMPTY) seasonScore--;
-                    if (j < 10 && terrainTypeMap[i][j + 1] == TerrainType.EMPTY) seasonScore--;
+
+        for (int r = 0; r < GRID_ROWS; r++) {
+            for (int c = 0; c < GRID_COLUMNS; c++) {
+                if (terrainTypeMap[r][c] == TerrainType.MONSTER) {
+                    if (r > 0 && terrainTypeMap[r - 1][c] == TerrainType.EMPTY) seasonScore--;
+                    if (r < 10 && terrainTypeMap[r + 1][c] == TerrainType.EMPTY) seasonScore--;
+                    if (c > 0 && terrainTypeMap[r][c - 1] == TerrainType.EMPTY) seasonScore--;
+                    if (c < 10 && terrainTypeMap[r][c + 1] == TerrainType.EMPTY) seasonScore--;
                 }
             }
         }
+
         score += seasonScore;
         currentSeason++;
 
@@ -360,7 +335,6 @@ public class GameController {
             updateUI();
         } else {
             cardDisplay.getChildren().clear();
-            cardDisplay.getChildren().add(new Label("Game Over! Final Score: " + score));
             // Disable all panes in the grid
             for (javafx.scene.Node node : gameGrid.getChildren()) {
                 if (node instanceof Pane) {
@@ -369,17 +343,6 @@ public class GameController {
             }
             updateUI();
         }
-    }
-
-    private int getClusterSize(int row, int col, TerrainType type, TerrainType[][] map, boolean[][] visited) {
-        if (row < 0 || row >= 11 || col < 0 || col >= 11 || map[row][col] != type || visited[row][col]) return 0;
-        visited[row][col] = true;
-        int size = 1;
-        size += getClusterSize(row - 1, col, type, map, visited);
-        size += getClusterSize(row + 1, col, type, map, visited);
-        size += getClusterSize(row, col - 1, type, map, visited);
-        size += getClusterSize(row, col + 1, type, map, visited);
-        return size;
     }
 
     private void updateCardDisplay() {
@@ -409,45 +372,6 @@ public class GameController {
         pane.setStyle(style);
     }
 
-    @FXML
-    protected void onMouseHover(MouseEvent event) {
-        if (currentSeason >= 4) return; // Ignore if game is over
-        Pane hoveredPane = (Pane) event.getSource();
-        Integer row = GridPane.getRowIndex(hoveredPane);
-        Integer col = GridPane.getColumnIndex(hoveredPane);
-        if (row == null || col == null || currentShape == null) return;
-        drawShape(row, col, true);
-    }
-
-    @FXML
-    protected void onMouseExit(MouseEvent event) {
-        if (currentSeason >= 4) return; // Ignore if game is over
-        Pane hoveredPane = (Pane) event.getSource();
-        Integer row = GridPane.getRowIndex(hoveredPane);
-        Integer col = GridPane.getColumnIndex(hoveredPane);
-        if (row == null || col == null || currentShape == null) return;
-        drawShape(row, col, false);
-    }
-
-    @FXML
-    protected void onMouseClick(MouseEvent event) {
-        if (currentSeason >= 4) return; // Ignore if game is over
-        Pane clickedPane = (Pane) event.getSource();
-        Integer row = GridPane.getRowIndex(clickedPane);
-        Integer col = GridPane.getColumnIndex(clickedPane);
-        if (row == null || col == null || currentShape == null || currentTerrain == null) return;
-
-        int adjustedBaseRow = adjustCoordinate(row, currentShape.stream().mapToInt(o -> o[0]).min().orElse(0), currentShape.stream().mapToInt(o -> o[0]).max().orElse(0));
-        int adjustedBaseCol = adjustCoordinate(col, currentShape.stream().mapToInt(o -> o[1]).min().orElse(0), currentShape.stream().mapToInt(o -> o[1]).max().orElse(0));
-
-        boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol);
-        if (isLegal) {
-            placeShape(adjustedBaseRow, adjustedBaseCol);
-            if (ruinsPending) ruinsPending = false;
-            drawNextCard();
-        }
-    }
-
     private int adjustCoordinate(int base, int minOffset, int maxOffset) {
         if (base + maxOffset >= 11) return 11 - 1 - maxOffset;
         if (base + minOffset < 0) return -minOffset;
@@ -459,21 +383,21 @@ public class GameController {
         for (int[] offset : currentShape) {
             int newRow = baseRow + offset[0];
             int newCol = baseCol + offset[1];
-            if (newRow < 0 || newRow >= 11 || newCol < 0 || newCol >= 11 || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
+            if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
                 return false;
             }
             if (isRuins[newRow][newCol]) overlapsRuins = true;
         }
 
         if (ruinsPending && !overlapsRuins) {
-            for (int r = 0; r < 11; r++) {
-                for (int c = 0; c < 11; c++) {
+            for (int r = 0; r < GRID_ROWS; r++) {
+                for (int c = 0; c < GRID_COLUMNS; c++) {
                     boolean canPlace = true;
                     boolean hasRuins = false;
                     for (int[] offset : currentShape) {
                         int nr = r + offset[0];
                         int nc = c + offset[1];
-                        if (nr < 0 || nr >= 11 || nc < 0 || nc >= 11 || terrainTypeMap[nr][nc] != TerrainType.EMPTY) {
+                        if (nr < 0 || nr >= GRID_ROWS || nc < 0 || nc >= GRID_COLUMNS || terrainTypeMap[nr][nc] != TerrainType.EMPTY) {
                             canPlace = false;
                             break;
                         }

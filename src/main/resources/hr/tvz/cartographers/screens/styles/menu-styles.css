@@ -1,0 +1,21 @@
+.anchor-pane {
+    -fx-background-image: url("menu-background.png");
+    -fx-background-size: 1280px 720px;
+    -fx-background-position: 0 0;
+    -fx-background-repeat: no-repeat;
+}
+
+.label {
+    -fx-font-family: "Pristina";
+    -fx-font-size: 50px;
+}
+
+.button {
+    -fx-font-family: "Pristina";
+    -fx-font-size: 26px;
+    -fx-background-color: #b59269;
+}
+
+.button:hover {
+    -fx-background-color: #c1a47b;
+}
