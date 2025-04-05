@@ -31,7 +31,7 @@ public final class DocumentationGenerator {
             writeToFile(docPath, htmlContent);
             openInBrowser(docPath);
         } catch (IOException e) {
-            log.error("Error with generating documentation: ", e);
+            log.error("Error occurred when generating documentation: ", e);
         }
     }
 

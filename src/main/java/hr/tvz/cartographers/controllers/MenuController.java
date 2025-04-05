@@ -6,9 +6,12 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
+@Slf4j
 public class MenuController {
 
     @FXML
@@ -16,11 +19,12 @@ public class MenuController {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(CartographersApplication.class.getResource("screens/game.fxml"));
             Scene gameScene = new Scene(fxmlLoader.load());
+            Stage stage = CartographersApplication.getApplicationStage();
 
-            CartographersApplication.applicationStage.setScene(gameScene);
-            CartographersApplication.applicationStage.show();
+            stage.setScene(gameScene);
+            stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error occurred when starting new game: ", e);
         }
     }
 
