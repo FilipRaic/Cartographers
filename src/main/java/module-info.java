@@ -3,6 +3,10 @@ module hr.tvz.cartographers {
     requires javafx.fxml;
     requires static lombok;
     requires java.desktop;
+    requires java.rmi;
+    requires java.naming;
+    requires org.slf4j;
+    requires java.smartcardio;
 
     opens hr.tvz.cartographers to javafx.fxml;
     exports hr.tvz.cartographers;

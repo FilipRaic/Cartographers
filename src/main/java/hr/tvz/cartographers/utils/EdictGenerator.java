@@ -14,10 +14,10 @@ import java.util.Set;
 public final class EdictGenerator {
 
     public static List<Edict> generateEdicts() {
-        return edicts;
+        return new ArrayList<>(edicts);
     }
 
-    private static final List<Edict> edicts = new ArrayList<>(List.of(
+    private static final List<Edict> edicts = List.of(
             new Edict("A - The Queen's Arbors", map -> {
                 int points = 0;
                 boolean[][] visited = new boolean[11][11]; // To avoid modifying the map
@@ -29,6 +29,7 @@ public final class EdictGenerator {
                         }
                     }
                 }
+
                 return points;
             }),
             new Edict("B - Canal Lake", map -> {
@@ -45,6 +46,7 @@ public final class EdictGenerator {
                         }
                     }
                 }
+
                 return points;
             }),
             new Edict("C - Wildholds", map -> {
@@ -58,6 +60,7 @@ public final class EdictGenerator {
                         }
                     }
                 }
+
                 return points;
             }),
             new Edict("D - Greengold Plains", map -> {
@@ -75,18 +78,22 @@ public final class EdictGenerator {
                         }
                     }
                 }
+
                 return points;
             })
-    ));
+    );
 
     private static int getClusterSize(int row, int col, TerrainType type, TerrainType[][] map, boolean[][] visited) {
-        if (row < 0 || row >= 11 || col < 0 || col >= 11 || map[row][col] != type || visited[row][col]) return 0;
+        if (row < 0 || row >= 11 || col < 0 || col >= 11 || map[row][col] != type || visited[row][col])
+            return 0;
+
         visited[row][col] = true;
         int size = 1;
         size += getClusterSize(row - 1, col, type, map, visited);
         size += getClusterSize(row + 1, col, type, map, visited);
         size += getClusterSize(row, col - 1, type, map, visited);
         size += getClusterSize(row, col + 1, type, map, visited);
+
         return size;
     }
 }

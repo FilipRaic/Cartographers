@@ -1,10 +1,11 @@
 package hr.tvz.cartographers.enums;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum TerrainType {
 
     EMPTY("transparent"),

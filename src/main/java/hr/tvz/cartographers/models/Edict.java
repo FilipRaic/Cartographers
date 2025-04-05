@@ -10,7 +10,7 @@ import java.util.function.ToIntFunction;
 public class Edict {
 
     @Getter
-    String name;
+    private String name;
     private ToIntFunction<TerrainType[][]> scoringLogic;
 
     public int score(TerrainType[][] map) {

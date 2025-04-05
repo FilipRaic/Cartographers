@@ -9,27 +9,22 @@
             font-family: Arial, sans-serif;
             padding: 20px;
         }
-
         h2 {
             color: #2c3e50;
             border-bottom: 2px solid #2c3e50;
             padding-bottom: 5px;
         }
-
         h3 {
             color: #34495e;
             margin-top: 15px;
         }
-
         ul {
             list-style-type: none;
             padding-left: 20px;
         }
-
         li {
             margin: 5px 0;
         }
-
         .class-block {
             margin-bottom: 20px;
             padding: 10px;
@@ -37,13 +32,11 @@
             border-radius: 5px;
             background-color: #f9f9f9;
         }
-
         code {
             background-color: #eee;
             padding: 2px 5px;
             border-radius: 3px;
         }
-
         .enum-list, .field-list, .constructor-list, .getter-setter-list, .method-list {
             padding-left: 10px;
         }
@@ -55,24 +48,25 @@
 </div>
 
 <div class='class-block'>
-	<h2>public class CartographersApplication</h2>
-	<p><strong>Extends:</strong> Application</p>
+	<h2>public class CartographersApplication extends Application</h2>
 	<h3>Fields</h3>
 <ul class='field-list'><li><code>public static Stage applicationStage</code></li>
 </ul>
 	<h3>Constructors</h3>
 <ul class='constructor-list'><li><code>public hr.tvz.cartographers.CartographersApplication()</code></li>
 </ul>
-	<h3>Other Methods</h3>
-<ul class='method-list'><li><code>public static void main()</code></li>
-<li><code>public void start()</code></li>
+	<h3>Methods</h3>
+<ul class='method-list'><li><code>public static void main(String[] arg0)</code></li>
+<li><code>public void start(Stage arg0)</code></li>
 </ul>
 </div>
 
 <div class='class-block'>
 	<h2>public class GameController</h2>
 	<h3>Fields</h3>
-<ul class='field-list'><li><code>private GridPane gameGrid</code></li>
+<ul class='field-list'><li><code>private static final Integer GRID_ROWS</code></li>
+<li><code>private static final Integer GRID_COLUMNS</code></li>
+<li><code>private GridPane gameGrid</code></li>
 <li><code>private VBox cardDisplay</code></li>
 <li><code>private Label seasonLabel</code></li>
 <li><code>private Label scoreLabel</code></li>
@@ -100,46 +94,11 @@
 	<h3>Constructors</h3>
 <ul class='constructor-list'><li><code>public hr.tvz.cartographers.controllers.GameController()</code></li>
 </ul>
-	<h3>Getters & Setters</h3>
-<ul class='getter-setter-list'><li><code>private Pane getPaneAt()</code></li>
-</ul>
-	<h3>Other Methods</h3>
-<ul class='method-list'><li><code>public void initialize()</code></li>
-<li><code>private List normalize()</code></li>
-<li><code>private List rotate90()</code></li>
-<li><code>protected void onMouseClick()</code></li>
-<li><code>private void updatePaneStyle()</code></li>
-<li><code>private List flipHorizontal()</code></li>
-<li><code>protected void onMouseExit()</code></li>
-<li><code>private void highlightPane()</code></li>
-<li><code>private void handleAmbush()</code></li>
-<li><code>protected void onMouseHover()</code></li>
-<li><code>private void updateCardDisplay()</code></li>
-<li><code>private String serialize()</code></li>
-<li><code>private void updateUI()</code></li>
-<li><code>private void endSeason()</code></li>
-<li><code>private void drawShape()</code></li>
-<li><code>private void placeShape()</code></li>
-<li><code>private void lambda$updateCardDisplay$9()</code></li>
-<li><code>private void initializeExploreDeck()</code></li>
-<li><code>private static int lambda$drawShape$12()</code></li>
-<li><code>private List generateUniqueShapes()</code></li>
-<li><code>private static int lambda$drawShape$11()</code></li>
-<li><code>private static int lambda$drawShape$13()</code></li>
-<li><code>private static int lambda$drawShape$10()</code></li>
-<li><code>private boolean isPlacementLegal()</code></li>
-<li><code>private void updateMapVisuals()</code></li>
-<li><code>private int adjustCoordinate()</code></li>
-<li><code>private void drawNextCard()</code></li>
-<li><code>private static int lambda$normalize$4()</code></li>
-<li><code>private static String lambda$serialize$8()</code></li>
-<li><code>private static int[] lambda$normalize$6()</code></li>
-<li><code>private static int lambda$normalize$5()</code></li>
-<li><code>private static int lambda$normalize$7()</code></li>
-<li><code>private static int lambda$onMouseClick$2()</code></li>
-<li><code>private static int lambda$onMouseClick$3()</code></li>
-<li><code>private static int lambda$onMouseClick$1()</code></li>
-<li><code>private static int lambda$onMouseClick$0()</code></li>
+	<h3>Methods</h3>
+<ul class='method-list'><li><code>protected void onMouseExit(MouseEvent arg0)</code></li>
+<li><code>protected void onMouseHover(MouseEvent arg0)</code></li>
+<li><code>protected void onMouseClick(MouseEvent arg0)</code></li>
+<li><code>public void initialize()</code></li>
 </ul>
 </div>
 
@@ -148,7 +107,7 @@
 	<h3>Constructors</h3>
 <ul class='constructor-list'><li><code>public hr.tvz.cartographers.controllers.MenuController()</code></li>
 </ul>
-	<h3>Other Methods</h3>
+	<h3>Methods</h3>
 <ul class='method-list'><li><code>protected void onStartNewGameButtonClicked()</code></li>
 <li><code>protected void onGenerateDocumentation()</code></li>
 <li><code>protected void onQuitGameButtonClicked()</code></li>
@@ -156,30 +115,57 @@
 </div>
 
 <div class='class-block'>
+	<h2>public class DocumentationConstants</h2>
+	<h3>Fields</h3>
+<ul class='field-list'><li><code>public static final String HTML_START</code></li>
+<li><code>public static final String HTML_END</code></li>
+<li><code>public static final String CLASS_PATH</code></li>
+<li><code>public static final String DOCUMENTATION_HTML_PATH</code></li>
+<li><code>public static final String CLASS_BLOCK_START</code></li>
+<li><code>public static final String LIST_END</code></li>
+<li><code>public static final String CODE_START</code></li>
+<li><code>public static final String CODE_END</code></li>
+</ul>
+</div>
+
+<div class='class-block'>
+	<h2>public final class DocumentationGenerator</h2>
+	<h3>Fields</h3>
+<ul class='field-list'><li><code>private static final Logger log</code></li>
+</ul>
+	<h3>Methods</h3>
+<ul class='method-list'><li><code>public static void generateDocumentation()</code></li>
+</ul>
+</div>
+
+<div class='class-block'>
+	<h2>public class DocumentationUtil</h2>
+	<h3>Fields</h3>
+<ul class='field-list'><li><code>private static final Logger log</code></li>
+</ul>
+	<h3>Methods</h3>
+<ul class='method-list'><li><code>public static void openInBrowser(Path arg0)</code></li>
+<li><code>public static void writeToFile(Path arg0, String arg1)</code></li>
+</ul>
+</div>
+
+<div class='class-block'>
 	<h2>public enum Season</h2>
-	<h3>Enum Constants</h3>
+	<h3>Constants</h3>
 <ul class='enum-list'><li><code>SPRING</code></li>
 <li><code>SUMMER</code></li>
 <li><code>FALL</code></li>
 <li><code>WINTER</code></li>
 </ul>
-	<h3>Fields</h3>
-<ul class='field-list'><li><code>public static final Season SPRING</code></li>
-<li><code>public static final Season SUMMER</code></li>
-<li><code>public static final Season FALL</code></li>
-<li><code>public static final Season WINTER</code></li>
-<li><code>private static final Season[] $VALUES</code></li>
-</ul>
-	<h3>Other Methods</h3>
+	<h3>Methods</h3>
 <ul class='method-list'><li><code>public static Season[] values()</code></li>
-<li><code>public static Season valueOf()</code></li>
-<li><code>private static Season[] $values()</code></li>
+<li><code>public static Season valueOf(String arg0)</code></li>
 </ul>
 </div>
 
 <div class='class-block'>
 	<h2>public enum Shape</h2>
-	<h3>Enum Constants</h3>
+	<h3>Constants</h3>
 <ul class='enum-list'><li><code>SINGLE</code></li>
 <li><code>DOUBLE</code></li>
 <li><code>TRIPLE</code></li>
@@ -190,31 +176,21 @@
 <li><code>L_SHAPE</code></li>
 </ul>
 	<h3>Fields</h3>
-<ul class='field-list'><li><code>public static final Shape SINGLE</code></li>
-<li><code>public static final Shape DOUBLE</code></li>
-<li><code>public static final Shape TRIPLE</code></li>
-<li><code>public static final Shape SQUARE</code></li>
-<li><code>public static final Shape T_SHAPE</code></li>
-<li><code>public static final Shape S_SHAPE</code></li>
-<li><code>public static final Shape Z_SHAPE</code></li>
-<li><code>public static final Shape L_SHAPE</code></li>
-<li><code>private final List blocks</code></li>
-<li><code>private static final Shape[] $VALUES</code></li>
+<ul class='field-list'><li><code>private final List blocks</code></li>
 </ul>
 	<h3>Getters & Setters</h3>
 <ul class='getter-setter-list'><li><code>public List getBlocks()</code></li>
 </ul>
-	<h3>Other Methods</h3>
+	<h3>Methods</h3>
 <ul class='method-list'><li><code>public static Shape[] values()</code></li>
-<li><code>public static Shape valueOf()</code></li>
+<li><code>public static Shape valueOf(String arg0)</code></li>
 <li><code>public static List list()</code></li>
-<li><code>private static Shape[] $values()</code></li>
 </ul>
 </div>
 
 <div class='class-block'>
 	<h2>public enum TerrainType</h2>
-	<h3>Enum Constants</h3>
+	<h3>Constants</h3>
 <ul class='enum-list'><li><code>EMPTY</code></li>
 <li><code>FOREST</code></li>
 <li><code>VILLAGE</code></li>
@@ -224,30 +200,21 @@
 <li><code>MOUNTAIN</code></li>
 </ul>
 	<h3>Fields</h3>
-<ul class='field-list'><li><code>public static final TerrainType EMPTY</code></li>
-<li><code>public static final TerrainType FOREST</code></li>
-<li><code>public static final TerrainType VILLAGE</code></li>
-<li><code>public static final TerrainType FARM</code></li>
-<li><code>public static final TerrainType WATER</code></li>
-<li><code>public static final TerrainType MONSTER</code></li>
-<li><code>public static final TerrainType MOUNTAIN</code></li>
-<li><code>private final String color</code></li>
-<li><code>private static final TerrainType[] $VALUES</code></li>
+<ul class='field-list'><li><code>private final String color</code></li>
 </ul>
 	<h3>Getters & Setters</h3>
 <ul class='getter-setter-list'><li><code>public String getColor()</code></li>
 </ul>
-	<h3>Other Methods</h3>
+	<h3>Methods</h3>
 <ul class='method-list'><li><code>public static TerrainType[] values()</code></li>
-<li><code>public static TerrainType valueOf()</code></li>
-<li><code>private static TerrainType[] $values()</code></li>
+<li><code>public static TerrainType valueOf(String arg0)</code></li>
 </ul>
 </div>
 
 <div class='class-block'>
 	<h2>public class Edict</h2>
 	<h3>Fields</h3>
-<ul class='field-list'><li><code> String name</code></li>
+<ul class='field-list'><li><code>private String name</code></li>
 <li><code>private ToIntFunction scoringLogic</code></li>
 </ul>
 	<h3>Constructors</h3>
@@ -256,50 +223,33 @@
 	<h3>Getters & Setters</h3>
 <ul class='getter-setter-list'><li><code>public String getName()</code></li>
 </ul>
-	<h3>Other Methods</h3>
-<ul class='method-list'><li><code>public int score()</code></li>
+	<h3>Methods</h3>
+<ul class='method-list'><li><code>public int score(TerrainType[][] arg0)</code></li>
 </ul>
 </div>
 
 <div class='class-block'>
 	<h2>public class ExploreCard</h2>
 	<h3>Fields</h3>
-<ul class='field-list'><li><code> String name</code></li>
-<li><code> List shapes</code></li>
-<li><code> List terrains</code></li>
-<li><code> int time</code></li>
-<li><code> boolean isRuins</code></li>
-<li><code> boolean isAmbush</code></li>
+<ul class='field-list'><li><code>private String name</code></li>
+<li><code>private List shapes</code></li>
+<li><code>private List terrains</code></li>
+<li><code>private int time</code></li>
+<li><code>private boolean isRuins</code></li>
+<li><code>private boolean isAmbush</code></li>
 </ul>
 	<h3>Constructors</h3>
 <ul class='constructor-list'><li><code>public hr.tvz.cartographers.models.ExploreCard(String arg0, List arg1, List arg2, int arg3, boolean arg4, boolean arg5)</code></li>
 </ul>
 	<h3>Getters & Setters</h3>
-<ul class='getter-setter-list'><li><code>public String getName()</code></li>
+<ul class='getter-setter-list'><li><code>public List getTerrains()</code></li>
+<li><code>public String getName()</code></li>
 <li><code>public int getTime()</code></li>
-<li><code>public List getTerrains()</code></li>
 <li><code>public List getShapes()</code></li>
 </ul>
-	<h3>Other Methods</h3>
-<ul class='method-list'><li><code>public boolean isAmbush()</code></li>
-<li><code>public boolean isRuins()</code></li>
-</ul>
-</div>
-
-<div class='class-block'>
-	<h2>public final class DocumentationGenerator</h2>
-	<h3>Constructors</h3>
-<ul class='constructor-list'><li><code>private hr.tvz.cartographers.utils.DocumentationGenerator()</code></li>
-</ul>
-	<h3>Other Methods</h3>
-<ul class='method-list'><li><code>private static void writeToDocumentationFile()</code></li>
-<li><code>public static void generateDocumentation()</code></li>
-<li><code>private static void appendParameters()</code></li>
-<li><code>private static boolean lambda$generateDocumentation$1()</code></li>
-<li><code>private static boolean lambda$generateDocumentation$0()</code></li>
-<li><code>private static boolean lambda$generateDocumentation$2()</code></li>
-<li><code>private static void documentClass()</code></li>
-<li><code>private static void openInBrowser()</code></li>
+	<h3>Methods</h3>
+<ul class='method-list'><li><code>public boolean isRuins()</code></li>
+<li><code>public boolean isAmbush()</code></li>
 </ul>
 </div>
 
@@ -308,18 +258,8 @@
 	<h3>Fields</h3>
 <ul class='field-list'><li><code>private static final List edicts</code></li>
 </ul>
-	<h3>Constructors</h3>
-<ul class='constructor-list'><li><code>private hr.tvz.cartographers.utils.EdictGenerator()</code></li>
-</ul>
-	<h3>Getters & Setters</h3>
-<ul class='getter-setter-list'><li><code>private static int getClusterSize()</code></li>
-</ul>
-	<h3>Other Methods</h3>
-<ul class='method-list'><li><code>private static int lambda$static$0()</code></li>
-<li><code>private static int lambda$static$1()</code></li>
-<li><code>private static int lambda$static$3()</code></li>
-<li><code>private static int lambda$static$2()</code></li>
-<li><code>public static List generateEdicts()</code></li>
+	<h3>Methods</h3>
+<ul class='method-list'><li><code>public static List generateEdicts()</code></li>
 </ul>
 </div>
 </body>

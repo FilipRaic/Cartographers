@@ -1,7 +1,7 @@
 package hr.tvz.cartographers.controllers;
 
 import hr.tvz.cartographers.CartographersApplication;
-import hr.tvz.cartographers.utils.DocumentationGenerator;
+import hr.tvz.cartographers.documentation.DocumentationGenerator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

@@ -10,10 +10,10 @@ import java.util.List;
 @AllArgsConstructor
 public class ExploreCard {
 
-    String name;
-    List<List<int[]>> shapes;
-    List<TerrainType> terrains;
-    int time;
-    boolean isRuins;
-    boolean isAmbush;
+    private String name;
+    private List<List<int[]>> shapes;
+    private List<TerrainType> terrains;
+    private int time;
+    private boolean isRuins;
+    private boolean isAmbush;
 }

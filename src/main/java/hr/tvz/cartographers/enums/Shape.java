@@ -1,5 +1,6 @@
 package hr.tvz.cartographers.enums;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -7,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum Shape {
 
     SINGLE(List.of(new int[]{0, 0})),
