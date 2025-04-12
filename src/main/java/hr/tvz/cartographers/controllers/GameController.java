@@ -1,14 +1,95 @@
 package hr.tvz.cartographers.controllers;
 
+import hr.tvz.cartographers.CartographersApplication;
+import hr.tvz.cartographers.shared.enums.PlayerType;
+import hr.tvz.cartographers.utils.ChatUtil;
+import javafx.animation.Timeline;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import lombok.RequiredArgsConstructor;
+
+import static hr.tvz.cartographers.utils.GameUtil.*;
+
+@RequiredArgsConstructor
+public class GameController {
+
+    @FXML
+    private GridPane gameGrid;
+    @FXML
+    private VBox cardDisplay;
+    @FXML
+    private Label seasonLabel;
+    @FXML
+    private Label scoreLabel;
+    @FXML
+    private Label coinLabel;
+    @FXML
+    private Label edictLabel;
+    @FXML
+    private TextField chatTextField;
+    @FXML
+    private TextArea chatTextArea;
+    @FXML
+    private AnchorPane chatArea;
+
+    @FXML
+    public void initialize() {
+        if (CartographersApplication.getPlayerType().equals(PlayerType.SINGLE_PLAYER)) {
+            this.chatArea.setVisible(false);
+        } else {
+            Timeline chatMessagesTimeline = ChatUtil.getChatTimeline(chatTextArea);
+            chatMessagesTimeline.play();
+        }
+
+        initializeGame(gameGrid, cardDisplay, seasonLabel, scoreLabel, coinLabel, edictLabel);
+    }
+
+    @FXML
+    protected void onMouseHover(MouseEvent event) {
+        highlightShape(event, true);
+    }
+
+    @FXML
+    protected void onMouseExit(MouseEvent event) {
+        highlightShape(event, false);
+    }
+
+    @FXML
+    protected void onMouseClick(MouseEvent event) {
+        placeShape(event);
+    }
+
+    @FXML
+    protected void sendChatMessage() {
+        ChatUtil.sendChatMessage(chatTextField.getText());
+        chatTextField.clear();
+    }
+}
+
+/*package hr.tvz.cartographers.controllers;
+
+import hr.tvz.cartographers.CartographersApplication;
 import hr.tvz.cartographers.enums.Shape;
 import hr.tvz.cartographers.enums.TerrainType;
 import hr.tvz.cartographers.models.Edict;
 import hr.tvz.cartographers.models.ExploreCard;
-import hr.tvz.cartographers.utils.EdictGenerator;
+import hr.tvz.cartographers.shared.enums.PlayerType;
+import hr.tvz.cartographers.utils.ChatUtil;
+import hr.tvz.cartographers.utils.EdictUtil;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -24,7 +105,9 @@ public class GameController {
     private static final Integer GRID_COLUMNS = 11;
 
     @FXML
-    private GridPane gameGrid;
+    private GridPane gameGrid; // Current player's grid
+    @FXML
+    private GridPane otherPlayerGrid; // Other player's grid (display only)
     @FXML
     private VBox cardDisplay;
     @FXML
@@ -35,11 +118,18 @@ public class GameController {
     private Label coinLabel;
     @FXML
     private Label edictLabel;
+    @FXML
+    private TextField chatTextField;
+    @FXML
+    private TextArea chatTextArea;
+    @FXML
+    private AnchorPane chatArea;
 
-    private static final List<Edict> edicts = EdictGenerator.generateEdicts();
+    private static final List<Edict> edicts = EdictUtil.generateEdicts();
     private static final List<Shape> shapes = Shape.list();
 
-    private final TerrainType[][] terrainTypeMap = new TerrainType[GRID_ROWS][GRID_COLUMNS];
+    private final TerrainType[][] currentPlayerMap = new TerrainType[GRID_ROWS][GRID_COLUMNS];
+    private final TerrainType[][] otherPlayerMap = new TerrainType[GRID_ROWS][GRID_COLUMNS];
     private final boolean[][] isRuins = new boolean[GRID_ROWS][GRID_COLUMNS];
     private int coinCount = 0;
     private int score = 0;
@@ -48,8 +138,8 @@ public class GameController {
     private final int[] seasonThresholds = {8, 7, 6, 5};
     private int currentTime = 0;
 
-    private List<List<int[]>> allUniqueShapes;
-    private List<int[]> currentShape;
+    private List<List<int[]>> allUniqueShapes; // Still used for unique orientations, derived from Shape enum
+    private List<int[]> currentShape; // Current shape blocks from Shape enum
     private TerrainType currentTerrain;
     private boolean ruinsPending = false;
 
@@ -62,40 +152,53 @@ public class GameController {
 
     @FXML
     public void initialize() {
-        // Initialize map
+        PlayerType playerType = CartographersApplication.getPlayerType();
+        if (playerType.equals(PlayerType.SINGLE_PLAYER)) {
+            chatArea.setVisible(false);
+            otherPlayerGrid.setVisible(false);
+        } else {
+            Timeline chatMessagesTimeline = ChatUtil.getChatTimeline(chatTextArea);
+            chatMessagesTimeline.play();
+            otherPlayerGrid.setVisible(true);
+        }
+
+        // Initialize maps
         for (int i = 0; i < GRID_ROWS; i++) {
             for (int j = 0; j < GRID_COLUMNS; j++) {
-                terrainTypeMap[i][j] = TerrainType.EMPTY;
+                currentPlayerMap[i][j] = TerrainType.EMPTY;
+                otherPlayerMap[i][j] = TerrainType.EMPTY;
                 isRuins[i][j] = false;
             }
         }
 
-        // Randomly place mountains
+        // Randomly place mountains (both maps, same positions for consistency)
         int mountainsPlaced = 0;
         while (mountainsPlaced < 5) {
             int row = random.nextInt(GRID_ROWS);
             int col = random.nextInt(GRID_COLUMNS);
-            if (terrainTypeMap[row][col] == TerrainType.EMPTY) {
-                terrainTypeMap[row][col] = TerrainType.MOUNTAIN;
+            if (currentPlayerMap[row][col] == TerrainType.EMPTY) {
+                currentPlayerMap[row][col] = TerrainType.MOUNTAIN;
+                otherPlayerMap[row][col] = TerrainType.MOUNTAIN;
                 mountainsPlaced++;
             }
         }
 
-        // Randomly place ruins
+        // Randomly place ruins (only on current player's map for now)
         int ruinsPlaced = 0;
         while (ruinsPlaced < 5) {
             int row = random.nextInt(GRID_ROWS);
             int col = random.nextInt(GRID_COLUMNS);
-            if (terrainTypeMap[row][col] == TerrainType.EMPTY && !isRuins[row][col]) {
+            if (currentPlayerMap[row][col] == TerrainType.EMPTY && !isRuins[row][col]) {
                 isRuins[row][col] = true;
                 ruinsPlaced++;
             }
         }
 
         // Update visual representation
-        updateMapVisuals();
+        updateMapVisuals(gameGrid, currentPlayerMap);
+        updateMapVisuals(otherPlayerGrid, otherPlayerMap);
 
-        // Generate all unique shape orientations
+        // Generate all unique shape orientations from Shape enum
         allUniqueShapes = generateUniqueShapes();
 
         // Initialize edicts for the game
@@ -144,21 +247,32 @@ public class GameController {
         int adjustedBaseRow = adjustCoordinate(row, currentShape.stream().mapToInt(o -> o[0]).min().orElse(0), currentShape.stream().mapToInt(o -> o[0]).max().orElse(0));
         int adjustedBaseCol = adjustCoordinate(col, currentShape.stream().mapToInt(o -> o[1]).min().orElse(0), currentShape.stream().mapToInt(o -> o[1]).max().orElse(0));
 
-        boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol);
+        boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol, currentPlayerMap);
         if (isLegal) {
-            placeShape(adjustedBaseRow, adjustedBaseCol);
+            placeShape(adjustedBaseRow, adjustedBaseCol, currentPlayerMap, gameGrid);
             if (ruinsPending) ruinsPending = false;
             drawNextCard();
+            // Send move to other player (simulated via chat)
+            sendMoveToOtherPlayer(adjustedBaseRow, adjustedBaseCol, currentShape, currentTerrain);
         }
     }
 
-    private void updateMapVisuals() {
-        for (javafx.scene.Node node : gameGrid.getChildren()) {
+    @FXML
+    protected void sendChatMessage() {
+        String message = chatTextField.getText();
+        ChatUtil.sendChatMessage(message);
+        chatTextField.clear();
+        // Check if the message is a move from the other player
+        receiveMoveFromOtherPlayer(message);
+    }
+
+    private void updateMapVisuals(GridPane grid, TerrainType[][] map) {
+        for (javafx.scene.Node node : grid.getChildren()) {
             if (node instanceof Pane pane) {
                 Integer row = GridPane.getRowIndex(pane);
                 Integer col = GridPane.getColumnIndex(pane);
                 if (row != null && col != null) {
-                    updatePaneStyle(pane, row, col);
+                    updatePaneStyle(pane, row, col, map);
                 }
             }
         }
@@ -253,9 +367,7 @@ public class GameController {
     }
 
     private void drawNextCard() {
-        if (currentSeason >= 4) {
-            return; // Game is over, no more cards to draw
-        }
+        if (currentSeason >= 4) return;
         if (!exploreDeck.isEmpty()) {
             currentCard = exploreDeck.remove(0);
             if (currentCard.isRuins()) {
@@ -288,7 +400,7 @@ public class GameController {
                 for (int[] offset : ambushShape) {
                     int newRow = baseRow + r + offset[0];
                     int newCol = baseCol + c + offset[1];
-                    if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
+                    if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || currentPlayerMap[newRow][newCol] != TerrainType.EMPTY) {
                         canPlace = false;
                         break;
                     }
@@ -297,9 +409,12 @@ public class GameController {
                     for (int[] offset : ambushShape) {
                         int newRow = baseRow + r + offset[0];
                         int newCol = baseCol + c + offset[1];
-                        terrainTypeMap[newRow][newCol] = TerrainType.MONSTER;
-                        Pane pane = getPaneAt(newRow, newCol);
-                        if (pane != null) updatePaneStyle(pane, newRow, newCol);
+                        currentPlayerMap[newRow][newCol] = TerrainType.MONSTER;
+                        otherPlayerMap[newRow][newCol] = TerrainType.MONSTER; // Sync ambush on both grids
+                        Pane pane = getPaneAt(gameGrid, newRow, newCol);
+                        if (pane != null) updatePaneStyle(pane, newRow, newCol, currentPlayerMap);
+                        Pane otherPane = getPaneAt(otherPlayerGrid, newRow, newCol);
+                        if (otherPane != null) updatePaneStyle(otherPane, newRow, newCol, otherPlayerMap);
                     }
                     placed = true;
                 }
@@ -309,15 +424,15 @@ public class GameController {
     }
 
     private void endSeason() {
-        int seasonScore = currentEdicts.get(0).score(terrainTypeMap) + currentEdicts.get(1).score(terrainTypeMap);
+        int seasonScore = currentEdicts.get(0).score(currentPlayerMap) + currentEdicts.get(1).score(currentPlayerMap);
 
         for (int r = 0; r < GRID_ROWS; r++) {
             for (int c = 0; c < GRID_COLUMNS; c++) {
-                if (terrainTypeMap[r][c] == TerrainType.MONSTER) {
-                    if (r > 0 && terrainTypeMap[r - 1][c] == TerrainType.EMPTY) seasonScore--;
-                    if (r < 10 && terrainTypeMap[r + 1][c] == TerrainType.EMPTY) seasonScore--;
-                    if (c > 0 && terrainTypeMap[r][c - 1] == TerrainType.EMPTY) seasonScore--;
-                    if (c < 10 && terrainTypeMap[r][c + 1] == TerrainType.EMPTY) seasonScore--;
+                if (currentPlayerMap[r][c] == TerrainType.MONSTER) {
+                    if (r > 0 && currentPlayerMap[r - 1][c] == TerrainType.EMPTY) seasonScore--;
+                    if (r < 10 && currentPlayerMap[r + 1][c] == TerrainType.EMPTY) seasonScore--;
+                    if (c > 0 && currentPlayerMap[r][c - 1] == TerrainType.EMPTY) seasonScore--;
+                    if (c < 10 && currentPlayerMap[r][c + 1] == TerrainType.EMPTY) seasonScore--;
                 }
             }
         }
@@ -335,11 +450,8 @@ public class GameController {
             updateUI();
         } else {
             cardDisplay.getChildren().clear();
-            // Disable all panes in the grid
             for (javafx.scene.Node node : gameGrid.getChildren()) {
-                if (node instanceof Pane) {
-                    node.setDisable(true); // Disables mouse events and grays out the pane
-                }
+                if (node instanceof Pane) node.setDisable(true);
             }
             updateUI();
         }
@@ -348,11 +460,11 @@ public class GameController {
     private void updateCardDisplay() {
         cardDisplay.getChildren().clear();
         if (currentCard != null) {
-            Label title = new Label(currentCard.getName() + " (Time: " + currentCard.getName() + ")");
+            Label title = new Label(currentCard.getName() + " (Time: " + currentCard.getTime() + ")");
             cardDisplay.getChildren().add(title);
             for (List<int[]> shape : currentCard.getShapes()) {
                 for (TerrainType terrain : currentCard.getTerrains()) {
-                    Button option = new Button(terrain + " - Shape " + allUniqueShapes.indexOf(shape));
+                    Button option = new Button(terrain.name());
                     option.setOnAction(e -> {
                         currentShape = shape;
                         currentTerrain = terrain;
@@ -363,8 +475,8 @@ public class GameController {
         }
     }
 
-    private void updatePaneStyle(Pane pane, int row, int col) {
-        TerrainType terrain = terrainTypeMap[row][col];
+    private void updatePaneStyle(Pane pane, int row, int col, TerrainType[][] map) {
+        TerrainType terrain = map[row][col];
         String style = "-fx-background-color: " + terrain.getColor() + ";";
         if (isRuins[row][col] && terrain == TerrainType.EMPTY) {
             style += "-fx-border-color: black; -fx-border-width: 2;";
@@ -378,12 +490,12 @@ public class GameController {
         return base;
     }
 
-    private boolean isPlacementLegal(int baseRow, int baseCol) {
+    private boolean isPlacementLegal(int baseRow, int baseCol, TerrainType[][] map) {
         boolean overlapsRuins = false;
         for (int[] offset : currentShape) {
             int newRow = baseRow + offset[0];
             int newCol = baseCol + offset[1];
-            if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
+            if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || map[newRow][newCol] != TerrainType.EMPTY) {
                 return false;
             }
             if (isRuins[newRow][newCol]) overlapsRuins = true;
@@ -397,7 +509,7 @@ public class GameController {
                     for (int[] offset : currentShape) {
                         int nr = r + offset[0];
                         int nc = c + offset[1];
-                        if (nr < 0 || nr >= GRID_ROWS || nc < 0 || nc >= GRID_COLUMNS || terrainTypeMap[nr][nc] != TerrainType.EMPTY) {
+                        if (nr < 0 || nr >= GRID_ROWS || nc < 0 || nc >= GRID_COLUMNS || map[nr][nc] != TerrainType.EMPTY) {
                             canPlace = false;
                             break;
                         }
@@ -407,17 +519,16 @@ public class GameController {
                 }
             }
         }
-
         return true;
     }
 
-    private void placeShape(int baseRow, int baseCol) {
+    private void placeShape(int baseRow, int baseCol, TerrainType[][] map, GridPane grid) {
         for (int[] offset : currentShape) {
             int newRow = baseRow + offset[0];
             int newCol = baseCol + offset[1];
-            terrainTypeMap[newRow][newCol] = currentTerrain;
-            Pane pane = getPaneAt(newRow, newCol);
-            if (pane != null) updatePaneStyle(pane, newRow, newCol);
+            map[newRow][newCol] = currentTerrain;
+            Pane pane = getPaneAt(grid, newRow, newCol);
+            if (pane != null) updatePaneStyle(pane, newRow, newCol, map);
         }
     }
 
@@ -426,7 +537,7 @@ public class GameController {
         int adjustedBaseRow = adjustCoordinate(baseRow, currentShape.stream().mapToInt(o -> o[0]).min().orElse(0), currentShape.stream().mapToInt(o -> o[0]).max().orElse(0));
         int adjustedBaseCol = adjustCoordinate(baseCol, currentShape.stream().mapToInt(o -> o[1]).min().orElse(0), currentShape.stream().mapToInt(o -> o[1]).max().orElse(0));
 
-        boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol);
+        boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol, currentPlayerMap);
         Set<String> shapePositions = new HashSet<>();
         for (int[] offset : currentShape) {
             int newRow = adjustedBaseRow + offset[0];
@@ -437,26 +548,25 @@ public class GameController {
         for (int[] offset : currentShape) {
             int newRow = adjustedBaseRow + offset[0];
             int newCol = adjustedBaseCol + offset[1];
-            Pane pane = getPaneAt(newRow, newCol);
+            Pane pane = getPaneAt(gameGrid, newRow, newCol);
             if (pane != null) {
                 if (highlight) {
                     highlightPane(pane, newRow, newCol, shapePositions, isLegal);
                 } else {
-                    updatePaneStyle(pane, newRow, newCol);
+                    updatePaneStyle(pane, newRow, newCol, currentPlayerMap);
                 }
             }
         }
     }
 
-    private Pane getPaneAt(int row, int col) {
-        for (javafx.scene.Node node : gameGrid.getChildren()) {
+    private Pane getPaneAt(GridPane grid, int row, int col) {
+        for (javafx.scene.Node node : grid.getChildren()) {
             Integer nodeRow = GridPane.getRowIndex(node);
             Integer nodeCol = GridPane.getColumnIndex(node);
             if (nodeRow != null && nodeCol != null && nodeRow == row && nodeCol == col) {
                 return (Pane) node;
             }
         }
-
         return null;
     }
 
@@ -475,4 +585,34 @@ public class GameController {
         style.append(borderWidth);
         pane.setStyle(style.toString());
     }
-}
+
+    private void sendMoveToOtherPlayer(int baseRow, int baseCol, List<int[]> shape, TerrainType terrain) {
+        String moveMessage = String.format("MOVE:%d,%d,%s,%s", baseRow, baseCol, serialize(shape), terrain.name());
+        ChatUtil.sendChatMessage(moveMessage);
+    }
+
+    private void receiveMoveFromOtherPlayer(String message) {
+        if (message.startsWith("MOVE:")) {
+            String[] parts = message.substring(5).split(",");
+            int baseRow = Integer.parseInt(parts[0]);
+            int baseCol = Integer.parseInt(parts[1]);
+            List<int[]> shape = deserializeShape(parts[2]);
+            TerrainType terrain = TerrainType.valueOf(parts[3]);
+            placeShape(baseRow, baseCol, otherPlayerMap, otherPlayerGrid);
+            currentShape = shape; // Temporarily set for placement
+            currentTerrain = terrain;
+            placeShape(baseRow, baseCol, otherPlayerMap, otherPlayerGrid);
+            currentShape = null; // Reset after placement
+            currentTerrain = null;
+        }
+    }
+
+    private List<int[]> deserializeShape(String serialized) {
+        List<int[]> shape = new ArrayList<>();
+        for (String coord : serialized.split(";")) {
+            String[] parts = coord.split(",");
+            shape.add(new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])});
+        }
+        return shape;
+    }
+}*/
