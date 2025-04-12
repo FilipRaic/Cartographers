@@ -1,7 +1,6 @@
 .anchor-pane {
-    -fx-background-image: url("game-background.png");
-    -fx-background-size: 1280px 720px;
-    -fx-background-position: 0 0;
+    -fx-background-size: cover;
+    -fx-background-position: center center;
     -fx-background-repeat: no-repeat;
 }
 
@@ -19,4 +18,19 @@
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-border-width: 0;
+}
+
+.label {
+    -fx-font-family: "Pristina";
+    -fx-font-size: 20px;
+}
+
+.button {
+    -fx-font-family: "Pristina";
+    -fx-font-size: 18px;
+    -fx-background-color: #b59269;
+}
+
+.button:hover {
+    -fx-background-color: #c1a47b;
 }

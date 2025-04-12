@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class EdictGenerator {
+public final class EdictUtil {
 
     public static List<Edict> generateEdicts() {
         return new ArrayList<>(edicts);

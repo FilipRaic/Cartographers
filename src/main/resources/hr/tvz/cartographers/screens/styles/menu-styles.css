@@ -1,7 +1,7 @@
 .anchor-pane {
     -fx-background-image: url("menu-background.png");
-    -fx-background-size: 1280px 720px;
-    -fx-background-position: 0 0;
+    -fx-background-size: cover;
+    -fx-background-position: center center;
     -fx-background-repeat: no-repeat;
 }
 

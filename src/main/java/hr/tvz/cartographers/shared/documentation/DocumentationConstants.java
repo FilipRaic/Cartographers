@@ -1,4 +1,4 @@
-package hr.tvz.cartographers.documentation;
+package hr.tvz.cartographers.shared.documentation;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

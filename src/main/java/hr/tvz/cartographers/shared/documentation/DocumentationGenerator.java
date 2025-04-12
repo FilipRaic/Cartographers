@@ -1,4 +1,4 @@
-package hr.tvz.cartographers.documentation;
+package hr.tvz.cartographers.shared.documentation;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -11,9 +11,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static hr.tvz.cartographers.documentation.DocumentationConstants.*;
-import static hr.tvz.cartographers.documentation.DocumentationUtil.openInBrowser;
-import static hr.tvz.cartographers.documentation.DocumentationUtil.writeToFile;
+import static hr.tvz.cartographers.shared.documentation.DocumentationConstants.*;
+import static hr.tvz.cartographers.shared.documentation.DocumentationUtil.openInBrowser;
+import static hr.tvz.cartographers.shared.documentation.DocumentationUtil.writeToFile;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

@@ -6,10 +6,11 @@ module hr.tvz.cartographers {
     requires java.rmi;
     requires java.naming;
     requires org.slf4j;
-    requires java.smartcardio;
 
     opens hr.tvz.cartographers to javafx.fxml;
     exports hr.tvz.cartographers;
     exports hr.tvz.cartographers.controllers;
+    exports hr.tvz.cartographers.shared.enums;
+    exports hr.tvz.cartographers.shared.chat;
     opens hr.tvz.cartographers.controllers to javafx.fxml;
 }
