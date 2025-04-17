@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public enum PlayerType {
+public enum Player {
     SINGLE_PLAYER("Single player"),
     PLAYER_ONE("Player one"),
     PLAYER_TWO("Player two");

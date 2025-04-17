@@ -24,7 +24,7 @@ public enum Season {
         return Season.values()[this.position + 1];
     }
 
-    public boolean isFinished() {
+    public boolean isEnd() {
         return this.equals(END);
     }
 }

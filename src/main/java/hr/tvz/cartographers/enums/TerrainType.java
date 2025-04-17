@@ -4,9 +4,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.io.Serializable;
+
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public enum TerrainType {
+public enum TerrainType implements Serializable {
 
     EMPTY("transparent"),
     FOREST("#228B22"),

@@ -1,7 +1,7 @@
 package hr.tvz.cartographers.utils;
 
 import hr.tvz.cartographers.CartographersApplication;
-import hr.tvz.cartographers.shared.enums.PlayerType;
+import hr.tvz.cartographers.shared.enums.Player;
 import hr.tvz.cartographers.shared.enums.ScreenConfiguration;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -26,7 +26,7 @@ public class MenuUtil {
             Scene gameScene;
             Parent root = fxmlLoader.load();
 
-            if (!CartographersApplication.getPlayerType().equals(PlayerType.SINGLE_PLAYER)) {
+            if (!CartographersApplication.getPlayer().equals(Player.SINGLE_PLAYER)) {
                 setGameBackgroundImage(root, ScreenConfiguration.GAME_BACKGROUND_WIDE_IMAGE);
                 gameScene = new Scene(root, 1580.0, 720.0);
             } else {

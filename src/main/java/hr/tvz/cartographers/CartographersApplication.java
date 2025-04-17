@@ -1,6 +1,6 @@
 package hr.tvz.cartographers;
 
-import hr.tvz.cartographers.shared.enums.PlayerType;
+import hr.tvz.cartographers.shared.enums.Player;
 import hr.tvz.cartographers.shared.enums.ScreenConfiguration;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CartographersApplication extends Application {
 
     private static final AtomicReference<Stage> applicationStage = new AtomicReference<>();
-    private static final AtomicReference<PlayerType> playerType = new AtomicReference<>();
+    private static final AtomicReference<Player> player = new AtomicReference<>();
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -31,9 +31,9 @@ public class CartographersApplication extends Application {
 
     public static void main(String[] args) {
         if (args.length > 0) {
-            playerType.set(PlayerType.valueOf(args[0]));
+            player.set(Player.valueOf(args[0]));
         } else {
-            playerType.set(PlayerType.SINGLE_PLAYER);
+            player.set(Player.SINGLE_PLAYER);
         }
 
         launch();
@@ -43,7 +43,7 @@ public class CartographersApplication extends Application {
         return applicationStage.get();
     }
 
-    public static PlayerType getPlayerType() {
-        return playerType.get();
+    public static Player getPlayer() {
+        return player.get();
     }
 }

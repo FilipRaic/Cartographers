@@ -30,14 +30,14 @@ public class ChatUtil {
 
             ChatRemoteService chatRemoteService = getChatRemoteService();
 
-            chatRemoteService.sendChatMessage(CartographersApplication.getPlayerType().getLabel() + ": " + chatMessage);
+            chatRemoteService.sendChatMessage(CartographersApplication.getPlayer().getLabel() + ": " + chatMessage);
         } catch (RemoteException e) {
             throw new CustomException("Error while sending a chat message: ", e);
         }
     }
 
     public static Timeline getChatTimeline(TextArea chatTextArea) {
-        Timeline chatMessagesTimeline = new Timeline(new KeyFrame(Duration.millis(500), (ActionEvent event) -> {
+        Timeline chatMessagesTimeline = new Timeline(new KeyFrame(Duration.millis(500), (ActionEvent _) -> {
             try {
                 ChatRemoteService chatRemoteService = getChatRemoteService();
 
