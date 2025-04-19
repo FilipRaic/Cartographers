@@ -1,6 +1,7 @@
 package hr.tvz.cartographers.shared.thread;
 
-import hr.tvz.cartographers.models.GameMove;
+import hr.tvz.cartographers.models.GameState;
+import hr.tvz.cartographers.utils.GameStateUtil;
 import javafx.application.Platform;
 import javafx.scene.layout.GridPane;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,8 @@ public class GetLastGameMoveThread extends AbstractGameMoveThread implements Run
 
     @Override
     public void run() {
-        Optional<GameMove> theLastGameMoveOptional = super.getGameMove();
-        theLastGameMoveOptional.ifPresent(gameMove -> Platform.runLater(gameMove::toString));
+        Optional<GameState> currentGameState = super.getGameState();
+        currentGameState.ifPresent(gameState ->
+                Platform.runLater(() -> GameStateUtil.gameStateToGridPane(secondaryGameGrid, gameState)));
     }
 }

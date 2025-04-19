@@ -1,6 +1,5 @@
 package hr.tvz.cartographers.utils;
 
-import hr.tvz.cartographers.models.GameMove;
 import hr.tvz.cartographers.models.GameState;
 import hr.tvz.cartographers.shared.thread.PlayerClientThread;
 import hr.tvz.cartographers.shared.thread.PlayerServerThread;
@@ -26,13 +25,12 @@ public class PlayerSynchronizationUtil {
     }
 
     public static void saveMove(GridPane primaryGameGrid, GridPane secondaryGameGrid) {
-        GameMove theLastGameMove = new GameMove(gridPaneToCellState(primaryGameGrid));
-        GameMoveUtil.startSaveLastGameMoveThread(theLastGameMove);
-
-        GameState currentGameState = PlayerSynchronizationUtil.getCurrentGameState();
+        GameState currentGameState = getCurrentGameState();
 
         currentGameState.setPrimaryGrid(gridPaneToCellState(primaryGameGrid));
         currentGameState.setSecondaryGrid(gridPaneToCellState(secondaryGameGrid));
+
+        GameMoveUtil.startSaveLastGameMoveThread(currentGameState);
 
         PlayerClientThread playerClientThread = new PlayerClientThread(currentGameState);
         Thread thread = new Thread(playerClientThread);

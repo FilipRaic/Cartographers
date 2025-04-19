@@ -14,8 +14,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 public class CartographersApplication extends Application {
 
-    private static final AtomicReference<Stage> applicationStage = new AtomicReference<>();
     private static final AtomicReference<Player> player = new AtomicReference<>();
+    private static final AtomicReference<Stage> applicationStage = new AtomicReference<>();
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -39,11 +39,11 @@ public class CartographersApplication extends Application {
         launch();
     }
 
-    public static Stage getApplicationStage() {
-        return applicationStage.get();
-    }
-
     public static Player getPlayer() {
         return player.get();
+    }
+
+    public static Stage getApplicationStage() {
+        return applicationStage.get();
     }
 }

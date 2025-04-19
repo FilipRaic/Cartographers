@@ -22,12 +22,9 @@ public enum NetworkConfiguration {
         Player player = CartographersApplication.getPlayer();
 
         return Optional.ofNullable(switch (player) {
-            case PLAYER_ONE:
-                yield PLAYER_ONE_SERVER_PORT;
-            case PLAYER_TWO:
-                yield PLAYER_TWO_SERVER_PORT;
-            default:
-                yield null;
+            case PLAYER_ONE -> PLAYER_ONE_SERVER_PORT;
+            case PLAYER_TWO -> PLAYER_TWO_SERVER_PORT;
+            default -> null;
         });
     }
 }

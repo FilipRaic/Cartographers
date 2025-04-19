@@ -1,6 +1,6 @@
 package hr.tvz.cartographers.shared.thread;
 
-import hr.tvz.cartographers.models.GameMove;
+import hr.tvz.cartographers.models.GameState;
 import hr.tvz.cartographers.shared.exception.CustomException;
 
 import java.io.*;
@@ -15,16 +15,16 @@ public abstract class AbstractGameMoveThread {
     private static Boolean fileAccessInProgress = false;
     private static final String GAME_MOVES_FILE_PATH = "dat/currentGameState.ser";
 
-    public synchronized void saveGameMove(GameMove theLastGameMove) {
+    public synchronized void saveGameMove(GameState currentGameState) {
         checkIfFileAccessInProgress();
 
         fileAccessInProgress = true;
 
-        List<GameMove> gameMoves = getAllGamesMoves();
-        gameMoves.add(theLastGameMove);
+        List<GameState> gameStates = getAllGameStates();
+        gameStates.add(currentGameState);
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(GAME_MOVES_FILE_PATH))) {
-            oos.writeObject(gameMoves);
+            oos.writeObject(gameStates);
         } catch (IOException e) {
             throw new CustomException("There was an error while saving the last game move to the file "
                     + GAME_MOVES_FILE_PATH, e);
@@ -35,18 +35,18 @@ public abstract class AbstractGameMoveThread {
         notifyAll();
     }
 
-    public synchronized Optional<GameMove> getGameMove() {
+    public synchronized Optional<GameState> getGameState() {
         checkIfFileAccessInProgress();
 
         fileAccessInProgress = true;
 
-        List<GameMove> gameMoves = getAllGamesMoves();
+        List<GameState> gameStates = getAllGameStates();
 
         fileAccessInProgress = false;
 
         notifyAll();
 
-        return gameMoves.isEmpty() ? Optional.empty() : Optional.of(gameMoves.getLast());
+        return gameStates.isEmpty() ? Optional.empty() : Optional.of(gameStates.getLast());
     }
 
     private synchronized void checkIfFileAccessInProgress() {
@@ -61,22 +61,22 @@ public abstract class AbstractGameMoveThread {
         }
     }
 
-    private List<GameMove> getAllGamesMoves() {
-        List<GameMove> gameMoveList = new ArrayList<>();
+    private List<GameState> getAllGameStates() {
+        List<GameState> gameStates = new ArrayList<>();
         Path filePath = Path.of(GAME_MOVES_FILE_PATH);
 
         if (Files.exists(filePath)) {
             try {
                 if (Files.size(filePath) == 0) {
-                    return gameMoveList;
+                    return gameStates;
                 }
                 try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath.toFile()))) {
                     Object obj = ois.readObject();
                     if (obj instanceof List) {
-                        gameMoveList.addAll((List<GameMove>) obj);
+                        gameStates.addAll((List<GameState>) obj);
                     }
                 } catch (EOFException e) {
-                    return gameMoveList;
+                    return gameStates;
                 } catch (IOException | ClassNotFoundException e) {
                     throw new CustomException("Error reading game moves from file " + GAME_MOVES_FILE_PATH, e);
                 }
@@ -85,6 +85,6 @@ public abstract class AbstractGameMoveThread {
             }
         }
 
-        return gameMoveList;
+        return gameStates;
     }
 }

@@ -33,7 +33,6 @@ public class GameUtil {
     private static final List<List<int[]>> allUniqueShapes = Shape.getAllPermutationsForAllShapes();
 
     private static GridPane primaryGameGrid;
-    private static GridPane secondaryGameGrid;
     private static VBox cardDisplay;
     private static Label seasonLabel;
     private static Label scoreLabel;
@@ -53,14 +52,12 @@ public class GameUtil {
     private static final Random random = new Random();
 
     public static void initializeGame(GridPane primaryGameGridInput,
-                                      GridPane secondaryGameGridInput,
                                       VBox cardDisplayInput,
                                       Label seasonLabelInput,
                                       Label scoreLabelInput,
                                       Label coinLabelInput,
                                       Label edictLabelInput) {
         primaryGameGrid = primaryGameGridInput;
-        secondaryGameGrid = secondaryGameGridInput;
         cardDisplay = cardDisplayInput;
         seasonLabel = seasonLabelInput;
         scoreLabel = scoreLabelInput;

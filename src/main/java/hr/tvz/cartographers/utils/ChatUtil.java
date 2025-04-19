@@ -18,6 +18,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -29,25 +30,32 @@ public class ChatUtil {
                 return;
 
             ChatRemoteService chatRemoteService = getChatRemoteService();
-
-            chatRemoteService.sendChatMessage(CartographersApplication.getPlayer().getLabel() + ": " + chatMessage);
+            chatRemoteService.sendChatMessage(CartographersApplication.getPlayer().getLabel() + ":\n" + chatMessage);
         } catch (RemoteException e) {
             throw new CustomException("Error while sending a chat message: ", e);
         }
     }
 
     public static Timeline getChatTimeline(TextArea chatTextArea) {
-        Timeline chatMessagesTimeline = new Timeline(new KeyFrame(Duration.millis(500), (ActionEvent _) -> {
+        List<String> lastKnownMessages = new ArrayList<>();
+        Timeline chatMessagesTimeline = new Timeline(new KeyFrame(Duration.seconds(1), (ActionEvent _) -> {
             try {
                 ChatRemoteService chatRemoteService = getChatRemoteService();
-
                 List<String> chatMessages = chatRemoteService.getAllChatMessages();
-                String chatMessagesString = String.join("\n", chatMessages);
-                chatTextArea.setText(chatMessagesString);
+                List<String> newMessages = chatMessages.subList(lastKnownMessages.size(), chatMessages.size());
+
+                if (!newMessages.isEmpty()) {
+                    String newMessagesString = String.join("\n", newMessages);
+                    chatTextArea.appendText((chatTextArea.getText().isEmpty() ? "" : "\n") + newMessagesString);
+                    chatTextArea.setScrollTop(Double.MAX_VALUE);
+                }
+
+                lastKnownMessages.clear();
+                lastKnownMessages.addAll(chatMessages);
             } catch (RemoteException e) {
                 throw new CustomException("An error occurred while creating the timeline for chat: ", e);
             }
-        }), new KeyFrame(Duration.seconds(0.5)));
+        }));
 
         chatMessagesTimeline.setCycleCount(Animation.INDEFINITE);
         return chatMessagesTimeline;

@@ -34,3 +34,18 @@
 .button:hover {
     -fx-background-color: #c1a47b;
 }
+
+.chat-text-area {
+    -fx-font-family: "Consolas", "Monospace";
+    -fx-font-size: 14px;
+    -fx-border-radius: 5px;
+    -fx-border-color: #D3C08A;
+    -fx-background-color: #F5E8C7 !important;
+    -fx-control-inner-background: #F5E8C7 !important;
+}
+
+.chat-text-field {
+    -fx-border-radius: 5px;
+    -fx-border-color: #D3C08A;
+    -fx-background-color: #F5E8C7;
+}

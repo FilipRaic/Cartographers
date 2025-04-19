@@ -1,6 +1,6 @@
 package hr.tvz.cartographers.utils;
 
-import hr.tvz.cartographers.models.GameMove;
+import hr.tvz.cartographers.models.GameState;
 import hr.tvz.cartographers.shared.thread.GetLastGameMoveThread;
 import hr.tvz.cartographers.shared.thread.SaveLastGameMoveThread;
 import javafx.animation.Animation;
@@ -22,13 +22,13 @@ public class GameMoveUtil {
             GetLastGameMoveThread getLastGameMoveThread = new GetLastGameMoveThread(secondaryGameGrid);
             Thread runner = new Thread(getLastGameMoveThread);
             runner.start();
-        }), new KeyFrame(Duration.seconds(5)));
+        }), new KeyFrame(Duration.seconds(1)));
         theLastGameMoveTimeline.setCycleCount(Animation.INDEFINITE);
         return theLastGameMoveTimeline;
     }
 
-    public static void startSaveLastGameMoveThread(GameMove theLastGameMove) {
-        SaveLastGameMoveThread saveLastGameMoveThread = new SaveLastGameMoveThread(theLastGameMove);
+    public static void startSaveLastGameMoveThread(GameState currentGameState) {
+        SaveLastGameMoveThread saveLastGameMoveThread = new SaveLastGameMoveThread(currentGameState);
         Thread runner = new Thread(saveLastGameMoveThread);
         runner.start();
     }

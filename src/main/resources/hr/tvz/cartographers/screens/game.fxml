@@ -290,8 +290,8 @@
               prefHeight="45.0" prefWidth="45.0" styleClass="pane" GridPane.columnIndex="10" GridPane.rowIndex="10"/>
     </GridPane>
 
-    <GridPane fx:id="secondaryGameGrid" gridLinesVisible="true" layoutX="960.0" layoutY="101.0" prefHeight="500.0"
-              prefWidth="500.0" styleClass="grid-pane" visible="false">
+    <GridPane fx:id="secondaryGameGrid" disable="true" gridLinesVisible="true" layoutX="960.0" layoutY="101.0"
+              prefHeight="500.0" prefWidth="500.0" styleClass="grid-pane">
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="9.09" prefWidth="100.0"/>
             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="9.09" prefWidth="100.0"/>
@@ -588,9 +588,11 @@
         </padding>
     </VBox>
     <AnchorPane fx:id="chatArea" layoutX="699.0" layoutY="382.0" prefHeight="218.0" prefWidth="200.0">
-        <TextArea fx:id="chatTextArea" layoutX="8.0" prefHeight="177.0" prefWidth="185.0"/>
-        <TextField fx:id="chatTextField" layoutX="7.0" layoutY="184.0" prefHeight="25.0" prefWidth="143.0"/>
-        <Button layoutX="154.0" layoutY="184.0" mnemonicParsing="false" onAction="#sendChatMessage"
-                prefHeight="25.0" prefWidth="38.0" text="OK"/>
+        <TextArea fx:id="chatTextArea" editable="false" layoutX="8.0" layoutY="8.0" prefHeight="169.0" prefWidth="185.0"
+                  styleClass="chat-text-area" wrapText="true"/>
+        <TextField fx:id="chatTextField" layoutX="7.0" layoutY="184.0" onKeyPressed="#sendChatMessage" prefHeight="27.0"
+                   prefWidth="185.0" styleClass="chat-text-field"/>
     </AnchorPane>
+    <Label fx:id="primaryPlayerLabel" layoutX="372.0" layoutY="42.0" text="Label"/>
+    <Label fx:id="secondaryPlayerLabel" layoutX="1192.0" layoutY="42.0" text="Label"/>
 </AnchorPane>
