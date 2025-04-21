@@ -10,24 +10,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractGameMoveThread {
+import static hr.tvz.cartographers.utils.FileUtil.GAME_STATE_FILE_PATH;
+
+public abstract class AbstractGameStateThread {
 
     private static Boolean fileAccessInProgress = false;
-    private static final String GAME_MOVES_FILE_PATH = "dat/currentGameState.ser";
 
     public synchronized void saveGameMove(GameState currentGameState) {
         checkIfFileAccessInProgress();
 
         fileAccessInProgress = true;
 
-        List<GameState> gameStates = getAllGameStates();
-        gameStates.add(currentGameState);
+        List<GameState> gameStates;
+        if (currentGameState == null) {
+            gameStates = new ArrayList<>();
+        } else {
+            gameStates = getAllGameStates();
+            gameStates.add(currentGameState);
+        }
 
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(GAME_MOVES_FILE_PATH))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(GAME_STATE_FILE_PATH))) {
             oos.writeObject(gameStates);
         } catch (IOException e) {
-            throw new CustomException("There was an error while saving the last game move to the file "
-                    + GAME_MOVES_FILE_PATH, e);
+            throw new CustomException("There was an error while saving the last game state to the file "
+                    + GAME_STATE_FILE_PATH, e);
         }
 
         fileAccessInProgress = false;
@@ -56,20 +62,20 @@ public abstract class AbstractGameMoveThread {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new CustomException(
-                        "There was a problem with entering the waiting state of the game move thread!", e);
+                        "There was a problem with entering the waiting state of the game state thread!", e);
             }
         }
     }
 
     private List<GameState> getAllGameStates() {
         List<GameState> gameStates = new ArrayList<>();
-        Path filePath = Path.of(GAME_MOVES_FILE_PATH);
+        Path filePath = Path.of(GAME_STATE_FILE_PATH);
 
         if (Files.exists(filePath)) {
             try {
-                if (Files.size(filePath) == 0) {
+                if (Files.size(filePath) == 0)
                     return gameStates;
-                }
+
                 try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath.toFile()))) {
                     Object obj = ois.readObject();
                     if (obj instanceof List) {
@@ -78,10 +84,10 @@ public abstract class AbstractGameMoveThread {
                 } catch (EOFException e) {
                     return gameStates;
                 } catch (IOException | ClassNotFoundException e) {
-                    throw new CustomException("Error reading game moves from file " + GAME_MOVES_FILE_PATH, e);
+                    throw new CustomException("Error reading game state from file " + GAME_STATE_FILE_PATH, e);
                 }
             } catch (IOException e) {
-                throw new CustomException("Error checking file size for " + GAME_MOVES_FILE_PATH, e);
+                throw new CustomException("Error checking file size for " + GAME_STATE_FILE_PATH, e);
             }
         }
 

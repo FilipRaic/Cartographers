@@ -590,9 +590,11 @@
     <AnchorPane fx:id="chatArea" layoutX="699.0" layoutY="382.0" prefHeight="218.0" prefWidth="200.0">
         <TextArea fx:id="chatTextArea" editable="false" layoutX="8.0" layoutY="8.0" prefHeight="169.0" prefWidth="185.0"
                   styleClass="chat-text-area" wrapText="true"/>
-        <TextField fx:id="chatTextField" layoutX="7.0" layoutY="184.0" onKeyPressed="#sendChatMessage" prefHeight="27.0"
+        <TextField fx:id="chatTextField" layoutX="7.0" layoutY="184.0" onKeyPressed="#onSendMessage" prefHeight="27.0"
                    prefWidth="185.0" styleClass="chat-text-field"/>
     </AnchorPane>
     <Label fx:id="primaryPlayerLabel" layoutX="372.0" layoutY="42.0" text="Label"/>
     <Label fx:id="secondaryPlayerLabel" layoutX="1192.0" layoutY="42.0" text="Label"/>
+    <Button layoutX="140.0" layoutY="36.0" mnemonicParsing="false" onAction="#onReturnToMenu" prefHeight="46.0"
+            prefWidth="134.0" text="Return to menu"/>
 </AnchorPane>

@@ -1,16 +1,20 @@
 package hr.tvz.cartographers.models;
 
-import hr.tvz.cartographers.CartographersApplication;
 import hr.tvz.cartographers.shared.enums.Player;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 
+import static hr.tvz.cartographers.CartographersApplication.getPlayer;
+import static hr.tvz.cartographers.shared.enums.Player.PLAYER_ONE;
+import static hr.tvz.cartographers.shared.enums.Player.SINGLE_PLAYER;
 import static hr.tvz.cartographers.utils.GameUtil.GRID_COLUMNS;
 import static hr.tvz.cartographers.utils.GameUtil.GRID_ROWS;
 
 @Setter
+@ToString
 @AllArgsConstructor
 public class GameState implements Serializable {
 
@@ -30,9 +34,9 @@ public class GameState implements Serializable {
     }
 
     public CellState[][] getPrimaryGrid() {
-        Player player = CartographersApplication.getPlayer();
+        Player player = getPlayer();
 
-        if (player.equals(Player.PLAYER_ONE) || player.equals(Player.SINGLE_PLAYER)) {
+        if (player.equals(PLAYER_ONE) || player.equals(SINGLE_PLAYER)) {
             return primaryGrid;
         } else {
             return secondaryGrid;
@@ -40,9 +44,9 @@ public class GameState implements Serializable {
     }
 
     public CellState[][] getSecondaryGrid() {
-        Player player = CartographersApplication.getPlayer();
+        Player player = getPlayer();
 
-        if (player.equals(Player.PLAYER_ONE) || player.equals(Player.SINGLE_PLAYER)) {
+        if (player.equals(PLAYER_ONE) || player.equals(SINGLE_PLAYER)) {
             return secondaryGrid;
         } else {
             return primaryGrid;

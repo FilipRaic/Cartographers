@@ -1,23 +1,29 @@
 package hr.tvz.cartographers.controllers;
 
-import hr.tvz.cartographers.shared.documentation.DocumentationGenerator;
-import hr.tvz.cartographers.utils.MenuUtil;
 import javafx.fxml.FXML;
+
+import static hr.tvz.cartographers.shared.documentation.DocumentationGenerator.generateDocumentation;
+import static hr.tvz.cartographers.utils.MenuUtil.*;
 
 public class MenuController {
 
     @FXML
     protected void onStartNewGameButtonClicked() {
-        MenuUtil.startNewGame();
+        startNewGame();
+    }
+
+    @FXML
+    protected void onLoadGameButtonClicked() {
+        loadGame();
     }
 
     @FXML
     protected void onGenerateDocumentation() {
-        DocumentationGenerator.generateDocumentation();
+        generateDocumentation();
     }
 
     @FXML
     protected void onQuitGameButtonClicked() {
-        MenuUtil.quitGame();
+        quitGame();
     }
 }

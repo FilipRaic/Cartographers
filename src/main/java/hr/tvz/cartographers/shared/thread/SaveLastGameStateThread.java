@@ -4,7 +4,7 @@ import hr.tvz.cartographers.models.GameState;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class SaveLastGameMoveThread extends AbstractGameMoveThread implements Runnable {
+public class SaveLastGameStateThread extends AbstractGameStateThread implements Runnable {
 
     private GameState currentGameState;
 

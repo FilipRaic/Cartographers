@@ -1,8 +1,6 @@
 package hr.tvz.cartographers.utils;
 
-import hr.tvz.cartographers.CartographersApplication;
 import hr.tvz.cartographers.shared.chat.ChatRemoteService;
-import hr.tvz.cartographers.shared.enums.NetworkConfiguration;
 import hr.tvz.cartographers.shared.exception.CustomException;
 import hr.tvz.cartographers.shared.jndi.ConfigurationReader;
 import javafx.animation.Animation;
@@ -21,6 +19,11 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.List;
 
+import static hr.tvz.cartographers.CartographersApplication.getPlayer;
+import static hr.tvz.cartographers.shared.chat.ChatRemoteService.REMOTE_OBJECT_NAME;
+import static hr.tvz.cartographers.shared.enums.NetworkConfiguration.HOSTNAME;
+import static hr.tvz.cartographers.shared.enums.NetworkConfiguration.RMI_PORT;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ChatUtil {
 
@@ -30,7 +33,7 @@ public class ChatUtil {
                 return;
 
             ChatRemoteService chatRemoteService = getChatRemoteService();
-            chatRemoteService.sendChatMessage(CartographersApplication.getPlayer().getLabel() + ":\n" + chatMessage);
+            chatRemoteService.sendChatMessage(getPlayer().getLabel() + ":\n" + chatMessage);
         } catch (RemoteException e) {
             throw new CustomException("Error while sending a chat message: ", e);
         }
@@ -64,10 +67,10 @@ public class ChatUtil {
     private static ChatRemoteService getChatRemoteService() throws RemoteException {
         try {
             Registry registry = LocateRegistry.getRegistry(
-                    ConfigurationReader.getStringValue(NetworkConfiguration.HOSTNAME),
-                    ConfigurationReader.getIntegerValue(NetworkConfiguration.RMI_PORT));
+                    ConfigurationReader.getStringValue(HOSTNAME),
+                    ConfigurationReader.getIntegerValue(RMI_PORT));
 
-            return (ChatRemoteService) registry.lookup(ChatRemoteService.REMOTE_OBJECT_NAME);
+            return (ChatRemoteService) registry.lookup(REMOTE_OBJECT_NAME);
         } catch (NotBoundException e) {
             throw new CustomException("An error occurred while creating the remote service: ", e);
         }

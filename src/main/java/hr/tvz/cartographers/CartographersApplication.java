@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static hr.tvz.cartographers.shared.enums.Player.SINGLE_PLAYER;
+
 @Slf4j
 public class CartographersApplication extends Application {
 
@@ -33,7 +35,7 @@ public class CartographersApplication extends Application {
         if (args.length > 0) {
             player.set(Player.valueOf(args[0]));
         } else {
-            player.set(Player.SINGLE_PLAYER);
+            player.set(SINGLE_PLAYER);
         }
 
         launch();

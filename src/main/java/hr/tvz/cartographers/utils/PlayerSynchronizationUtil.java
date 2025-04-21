@@ -5,32 +5,27 @@ import hr.tvz.cartographers.shared.thread.PlayerClientThread;
 import hr.tvz.cartographers.shared.thread.PlayerServerThread;
 import javafx.scene.layout.GridPane;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import static hr.tvz.cartographers.utils.GameStateUtil.gridPaneToCellState;
+import static hr.tvz.cartographers.utils.GameStateUtil.startSaveGameStateThread;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PlayerSynchronizationUtil {
 
-    @Getter
-    private static GameState currentGameState;
+    private static final GameState currentGameState = new GameState();
 
     public static void startServerThreads() {
-        currentGameState = new GameState();
-
         PlayerServerThread playerServerThread = new PlayerServerThread(currentGameState);
         Thread thread = new Thread(playerServerThread);
         thread.start();
     }
 
     public static void saveMove(GridPane primaryGameGrid, GridPane secondaryGameGrid) {
-        GameState currentGameState = getCurrentGameState();
-
         currentGameState.setPrimaryGrid(gridPaneToCellState(primaryGameGrid));
         currentGameState.setSecondaryGrid(gridPaneToCellState(secondaryGameGrid));
 
-        GameMoveUtil.startSaveLastGameMoveThread(currentGameState);
+        startSaveGameStateThread(currentGameState);
 
         PlayerClientThread playerClientThread = new PlayerClientThread(currentGameState);
         Thread thread = new Thread(playerClientThread);

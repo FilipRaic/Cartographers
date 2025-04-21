@@ -11,7 +11,7 @@
     <Button contentDisplay="CENTER" layoutX="527.0" layoutY="251.0" onAction="#onStartNewGameButtonClicked"
             prefHeight="60.0" prefWidth="250.0" text="New game">
     </Button>
-    <Button contentDisplay="CENTER" layoutX="527.0" layoutY="334.0"
+    <Button contentDisplay="CENTER" layoutX="527.0" layoutY="334.0" onAction="#onLoadGameButtonClicked"
             prefHeight="60.0" prefWidth="250.0" text="Load game">
     </Button>
     <Button contentDisplay="CENTER" layoutX="527.0" layoutY="419.0" onAction="#onGenerateDocumentation"

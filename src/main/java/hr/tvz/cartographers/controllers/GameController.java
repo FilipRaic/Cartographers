@@ -1,15 +1,14 @@
 package hr.tvz.cartographers.controllers;
 
-import hr.tvz.cartographers.CartographersApplication;
+import hr.tvz.cartographers.models.GameState;
 import hr.tvz.cartographers.shared.enums.Player;
-import hr.tvz.cartographers.utils.ChatUtil;
-import hr.tvz.cartographers.utils.GameMoveUtil;
+import hr.tvz.cartographers.shared.thread.GetLastGameStateThread;
+import hr.tvz.cartographers.utils.GameStateUtil;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -17,10 +16,18 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
+
+import static hr.tvz.cartographers.CartographersApplication.getPlayer;
 import static hr.tvz.cartographers.shared.enums.Player.*;
+import static hr.tvz.cartographers.utils.ChatUtil.getChatTimeline;
+import static hr.tvz.cartographers.utils.ChatUtil.sendChatMessage;
+import static hr.tvz.cartographers.utils.GameStateUtil.getLastGameStateTimeline;
 import static hr.tvz.cartographers.utils.GameUtil.*;
+import static hr.tvz.cartographers.utils.MenuUtil.returnToMenu;
 import static hr.tvz.cartographers.utils.PlayerSynchronizationUtil.saveMove;
 import static hr.tvz.cartographers.utils.PlayerSynchronizationUtil.startServerThreads;
+import static javafx.scene.input.KeyCode.ENTER;
 
 @RequiredArgsConstructor
 public class GameController {
@@ -52,7 +59,7 @@ public class GameController {
 
     @FXML
     public void initialize() {
-        Player player = CartographersApplication.getPlayer();
+        Player player = getPlayer();
 
         if (player.equals(SINGLE_PLAYER)) {
             this.chatArea.setVisible(false);
@@ -61,22 +68,33 @@ public class GameController {
             this.secondaryPlayerLabel.setVisible(false);
         } else {
             if (player.equals(PLAYER_ONE)) {
-                this.primaryPlayerLabel.setText("Player One");
-                this.secondaryPlayerLabel.setText("Player Two");
+                this.primaryPlayerLabel.setText(PLAYER_ONE.getLabel());
+                this.secondaryPlayerLabel.setText(PLAYER_TWO.getLabel());
             } else if (player.equals(PLAYER_TWO)) {
-                this.primaryPlayerLabel.setText("Player Two");
-                this.secondaryPlayerLabel.setText("Player One");
+                this.primaryPlayerLabel.setText(PLAYER_TWO.getLabel());
+                this.secondaryPlayerLabel.setText(PLAYER_ONE.getLabel());
             }
 
-            Timeline chatMessagesTimeline = ChatUtil.getChatTimeline(chatTextArea);
+            Timeline chatMessagesTimeline = getChatTimeline(chatTextArea);
             chatMessagesTimeline.play();
         }
 
-        initializeGame(primaryGameGrid, cardDisplay, seasonLabel, scoreLabel, coinLabel, edictLabel);
         startServerThreads();
 
-        Timeline theLastGameMoveTimeline = GameMoveUtil.getLastGameMoveTimeline(secondaryGameGrid);
-        theLastGameMoveTimeline.play();
+        Timeline theLastGameStateTimeline = getLastGameStateTimeline(secondaryGameGrid);
+        theLastGameStateTimeline.play();
+
+        GetLastGameStateThread getLastGameStateThread = new GetLastGameStateThread(secondaryGameGrid);
+        Optional<GameState> currentGameStateOptional = getLastGameStateThread.getGameState();
+
+        if (currentGameStateOptional.isPresent()) {
+            GameState currentGameState = currentGameStateOptional.get();
+
+            GameStateUtil.gameStateToGridPane(primaryGameGrid, currentGameState.getPrimaryGrid());
+            GameStateUtil.gameStateToGridPane(secondaryGameGrid, currentGameState.getSecondaryGrid());
+        } else {
+            initializeGame(primaryGameGrid, cardDisplay, seasonLabel, scoreLabel, coinLabel, edictLabel);
+        }
     }
 
     @FXML
@@ -96,10 +114,15 @@ public class GameController {
     }
 
     @FXML
-    protected void sendChatMessage(KeyEvent event) {
-        if (event.getCode() == KeyCode.ENTER) {
-            ChatUtil.sendChatMessage(chatTextField.getText());
+    protected void onSendMessage(KeyEvent event) {
+        if (event.getCode() == ENTER) {
+            sendChatMessage(chatTextField.getText());
             chatTextField.clear();
         }
+    }
+
+    @FXML
+    protected void onReturnToMenu() {
+        returnToMenu();
     }
 }

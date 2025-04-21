@@ -9,14 +9,14 @@ import lombok.AllArgsConstructor;
 import java.util.Optional;
 
 @AllArgsConstructor
-public class GetLastGameMoveThread extends AbstractGameMoveThread implements Runnable {
+public class GetLastGameStateThread extends AbstractGameStateThread implements Runnable {
 
     private GridPane secondaryGameGrid;
 
     @Override
     public void run() {
-        Optional<GameState> currentGameState = super.getGameState();
-        currentGameState.ifPresent(gameState ->
-                Platform.runLater(() -> GameStateUtil.gameStateToGridPane(secondaryGameGrid, gameState)));
+        Optional<GameState> currentGameStateOptional = super.getGameState();
+        currentGameStateOptional.ifPresent(gameState ->
+                Platform.runLater(() -> GameStateUtil.gameStateToGridPane(secondaryGameGrid, gameState.getSecondaryGrid())));
     }
 }
