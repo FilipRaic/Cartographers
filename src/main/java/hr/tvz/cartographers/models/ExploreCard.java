@@ -4,12 +4,13 @@ import hr.tvz.cartographers.enums.TerrainType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ExploreCard {
+public class ExploreCard implements Serializable {
 
     private String name;
     private List<List<int[]>> shapes;

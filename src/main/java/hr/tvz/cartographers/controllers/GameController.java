@@ -2,8 +2,8 @@ package hr.tvz.cartographers.controllers;
 
 import hr.tvz.cartographers.models.GameState;
 import hr.tvz.cartographers.shared.enums.Player;
+import hr.tvz.cartographers.shared.exception.CustomException;
 import hr.tvz.cartographers.shared.thread.GetLastGameStateThread;
-import hr.tvz.cartographers.utils.GameStateUtil;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -16,8 +16,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Optional;
-
 import static hr.tvz.cartographers.CartographersApplication.getPlayer;
 import static hr.tvz.cartographers.shared.enums.Player.*;
 import static hr.tvz.cartographers.utils.ChatUtil.getChatTimeline;
@@ -25,12 +23,16 @@ import static hr.tvz.cartographers.utils.ChatUtil.sendChatMessage;
 import static hr.tvz.cartographers.utils.GameStateUtil.getLastGameStateTimeline;
 import static hr.tvz.cartographers.utils.GameUtil.*;
 import static hr.tvz.cartographers.utils.MenuUtil.returnToMenu;
-import static hr.tvz.cartographers.utils.PlayerSynchronizationUtil.saveMove;
+import static hr.tvz.cartographers.utils.PlayerSynchronizationUtil.saveGameState;
 import static hr.tvz.cartographers.utils.PlayerSynchronizationUtil.startServerThreads;
 import static javafx.scene.input.KeyCode.ENTER;
 
 @RequiredArgsConstructor
 public class GameController {
+
+    private GameState gameState;
+    private Timeline chatTimeline;
+    private Timeline gameStateTimeline;
 
     @FXML
     private Label primaryPlayerLabel;
@@ -47,8 +49,6 @@ public class GameController {
     @FXML
     private Label scoreLabel;
     @FXML
-    private Label coinLabel;
-    @FXML
     private Label edictLabel;
     @FXML
     private TextField chatTextField;
@@ -60,6 +60,7 @@ public class GameController {
     @FXML
     public void initialize() {
         Player player = getPlayer();
+        gameState = new GameState();
 
         if (player.equals(SINGLE_PLAYER)) {
             this.chatArea.setVisible(false);
@@ -75,26 +76,18 @@ public class GameController {
                 this.secondaryPlayerLabel.setText(PLAYER_ONE.getLabel());
             }
 
-            Timeline chatMessagesTimeline = getChatTimeline(chatTextArea);
-            chatMessagesTimeline.play();
+            chatTimeline = getChatTimeline(chatTextArea);
+            chatTimeline.play();
         }
 
-        startServerThreads();
+        startServerThreads(gameState);
+        gameStateTimeline = getLastGameStateTimeline(gameState);
+        gameStateTimeline.play();
 
-        Timeline theLastGameStateTimeline = getLastGameStateTimeline(secondaryGameGrid);
-        theLastGameStateTimeline.play();
+        GetLastGameStateThread getLastGameStateThread = new GetLastGameStateThread(gameState);
+        gameState = getLastGameStateThread.getGameState().orElseThrow(() -> new CustomException("Game state not found"));
 
-        GetLastGameStateThread getLastGameStateThread = new GetLastGameStateThread(secondaryGameGrid);
-        Optional<GameState> currentGameStateOptional = getLastGameStateThread.getGameState();
-
-        if (currentGameStateOptional.isPresent()) {
-            GameState currentGameState = currentGameStateOptional.get();
-
-            GameStateUtil.gameStateToGridPane(primaryGameGrid, currentGameState.getPrimaryGrid());
-            GameStateUtil.gameStateToGridPane(secondaryGameGrid, currentGameState.getSecondaryGrid());
-        } else {
-            initializeGame(primaryGameGrid, cardDisplay, seasonLabel, scoreLabel, coinLabel, edictLabel);
-        }
+        initializeGame(primaryGameGrid, secondaryGameGrid, cardDisplay, seasonLabel, scoreLabel, edictLabel, gameState);
     }
 
     @FXML
@@ -109,8 +102,8 @@ public class GameController {
 
     @FXML
     protected void onMouseClick(MouseEvent event) {
-        placeShape(event);
-        saveMove(primaryGameGrid, secondaryGameGrid);
+        placeShape(event, gameState);
+        saveGameState(gameState);
     }
 
     @FXML
@@ -123,6 +116,12 @@ public class GameController {
 
     @FXML
     protected void onReturnToMenu() {
+        if (chatTimeline != null)
+            chatTimeline.stop();
+
+        if (gameStateTimeline != null)
+            gameStateTimeline.stop();
+
         returnToMenu();
     }
 }

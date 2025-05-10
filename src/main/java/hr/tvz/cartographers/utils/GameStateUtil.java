@@ -23,9 +23,9 @@ import static hr.tvz.cartographers.utils.ReplayUtil.saveCurrentGameStateToGameRe
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GameStateUtil {
 
-    public static Timeline getLastGameStateTimeline(GridPane secondaryGameGrid) {
+    public static Timeline getLastGameStateTimeline(GameState gameState) {
         Timeline theLastGameMoveTimeline = new Timeline(new KeyFrame(Duration.millis(1000), (ActionEvent _) -> {
-            GetLastGameStateThread getLastGameMoveThread = new GetLastGameStateThread(secondaryGameGrid);
+            GetLastGameStateThread getLastGameMoveThread = new GetLastGameStateThread(gameState);
             Thread runner = new Thread(getLastGameMoveThread);
             runner.start();
         }), new KeyFrame(Duration.seconds(1)));
@@ -35,7 +35,7 @@ public class GameStateUtil {
 
     public static void startNewGameSaveGameStateThread() {
         saveCurrentGameStateToGameReplay();
-        startSaveGameStateThread(null);
+        startSaveGameStateThread(new GameState());
     }
 
     public static void startSaveGameStateThread(GameState currentGameState) {
@@ -59,6 +59,8 @@ public class GameStateUtil {
 
                 if (pane != null) {
                     grid[row][col].setStyle(pane.getStyle());
+                    grid[row][col].setTerrainType(GameUtil.getTerrainTypeMap()[row][col]);
+                    grid[row][col].setRuins(GameUtil.getIsRuins()[row][col]);
                 }
             }
         }
