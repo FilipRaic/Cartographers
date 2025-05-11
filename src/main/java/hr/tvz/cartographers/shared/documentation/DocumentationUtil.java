@@ -18,7 +18,7 @@ public class DocumentationUtil {
         Files.createDirectories(path.getParent());
         try {
             Files.writeString(path, content);
-        } catch (FileAlreadyExistsException e) {
+        } catch (FileAlreadyExistsException _) {
             Files.writeString(path, content);
         }
     }

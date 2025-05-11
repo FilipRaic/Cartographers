@@ -24,14 +24,14 @@ public final class PlayerClientThread implements Runnable {
     }
 
     private void sendRequest() {
-        Optional<NetworkConfiguration> playerServerPortConfig = NetworkConfiguration.getPlayerPortConfiguration();
+        Optional<NetworkConfiguration> playerClientPortConfig = NetworkConfiguration.getPlayerClientPortConfiguration();
 
-        if (playerServerPortConfig.isEmpty())
+        if (playerClientPortConfig.isEmpty())
             return;
 
         try (Socket clientSocket = new Socket(
                 ConfigurationReader.getStringValue(NetworkConfiguration.HOSTNAME),
-                ConfigurationReader.getIntegerValue(playerServerPortConfig.get()))) {
+                ConfigurationReader.getIntegerValue(playerClientPortConfig.get()))) {
             log.info("Client is connecting to {}:{}", clientSocket.getInetAddress(), clientSocket.getPort());
 
             sendSerializableRequest(clientSocket);

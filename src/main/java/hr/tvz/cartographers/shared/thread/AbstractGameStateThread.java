@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static hr.tvz.cartographers.utils.FileUtil.GAME_STATE_FILE_PATH;
 
@@ -16,7 +15,7 @@ public abstract class AbstractGameStateThread {
 
     private static Boolean fileAccessInProgress = false;
 
-    public synchronized void saveGameMove(GameState currentGameState) {
+    public synchronized void saveGameState(GameState currentGameState) {
         checkIfFileAccessInProgress();
 
         fileAccessInProgress = true;
@@ -41,7 +40,7 @@ public abstract class AbstractGameStateThread {
         notifyAll();
     }
 
-    public synchronized Optional<GameState> getGameState() {
+    public synchronized GameState getGameState() {
         checkIfFileAccessInProgress();
 
         fileAccessInProgress = true;
@@ -52,7 +51,7 @@ public abstract class AbstractGameStateThread {
 
         notifyAll();
 
-        return gameStates.isEmpty() ? Optional.empty() : Optional.of(gameStates.getLast());
+        return gameStates.isEmpty() ? new GameState() : gameStates.getLast();
     }
 
     private synchronized void checkIfFileAccessInProgress() {
@@ -76,21 +75,28 @@ public abstract class AbstractGameStateThread {
                 if (Files.size(filePath) == 0)
                     return gameStates;
 
-                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath.toFile()))) {
-                    Object obj = ois.readObject();
-                    if (obj instanceof List) {
-                        gameStates.addAll((List<GameState>) obj);
-                    }
-                } catch (EOFException e) {
-                    return gameStates;
-                } catch (IOException | ClassNotFoundException e) {
-                    throw new CustomException("Error reading game state from file " + GAME_STATE_FILE_PATH, e);
-                }
+                return readFromFile(filePath, gameStates);
             } catch (IOException e) {
                 throw new CustomException("Error checking file size for " + GAME_STATE_FILE_PATH, e);
             }
         }
 
         return gameStates;
+    }
+
+    private static List<GameState> readFromFile(Path filePath, List<GameState> gameStates) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath.toFile()))) {
+            Object obj = ois.readObject();
+
+            if (obj instanceof List) {
+                gameStates.addAll((List<GameState>) obj);
+            }
+        } catch (EOFException _) {
+            return gameStates;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new CustomException("Error reading game state from file " + GAME_STATE_FILE_PATH, e);
+        }
+
+        return new ArrayList<>();
     }
 }

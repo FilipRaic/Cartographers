@@ -10,6 +10,6 @@ public class SaveLastGameStateThread extends AbstractGameStateThread implements 
 
     @Override
     public void run() {
-        super.saveGameMove(currentGameState);
+        super.saveGameState(currentGameState);
     }
 }

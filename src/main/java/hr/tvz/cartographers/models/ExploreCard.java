@@ -1,15 +1,17 @@
 package hr.tvz.cartographers.models;
 
 import hr.tvz.cartographers.enums.TerrainType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class ExploreCard implements Serializable {
 
     private String name;

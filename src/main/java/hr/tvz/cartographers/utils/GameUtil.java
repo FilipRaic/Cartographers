@@ -3,6 +3,7 @@ package hr.tvz.cartographers.utils;
 import hr.tvz.cartographers.enums.Season;
 import hr.tvz.cartographers.enums.Shape;
 import hr.tvz.cartographers.enums.TerrainType;
+import hr.tvz.cartographers.models.CellState;
 import hr.tvz.cartographers.models.Edict;
 import hr.tvz.cartographers.models.ExploreCard;
 import hr.tvz.cartographers.models.GameState;
@@ -19,8 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
+import static hr.tvz.cartographers.CartographersApplication.getPlayer;
+import static hr.tvz.cartographers.shared.enums.Player.SINGLE_PLAYER;
 import static hr.tvz.cartographers.utils.GameStateUtil.gameStateToGridPane;
-import static hr.tvz.cartographers.utils.GameStateUtil.gridPaneToCellState;
 import static hr.tvz.cartographers.utils.PaneUtil.*;
 
 @Slf4j
@@ -29,27 +31,27 @@ public class GameUtil {
 
     public static final Integer GRID_ROWS = 11;
     public static final Integer GRID_COLUMNS = 11;
+    private static final Integer NUMBER_OF_SPECIAL_TERRAIN_TYPES = 5;
 
     @Getter
-    private static final List<Edict> currentEdicts = new ArrayList<>();
-    @Getter
-    private static final List<Edict> edicts = EdictUtil.generateEdicts();
-    @Getter
-    private static final boolean[][] isRuins = new boolean[GRID_ROWS][GRID_COLUMNS];
-    @Getter
-    private static final TerrainType[][] terrainTypeMap = new TerrainType[GRID_ROWS][GRID_COLUMNS];
+    private static final List<Edict> edicts = EdictUtil.getEdicts();
     @Getter
     private static final List<List<int[]>> allUniqueShapes = Shape.getAllPermutationsForAllShapes();
 
+    @Getter
     private static GridPane primaryGameGrid;
+    @Getter
     private static GridPane secondaryGameGrid;
     private static VBox cardDisplay;
     private static Label seasonLabel;
     private static Label scoreLabel;
     private static Label edictLabel;
+    private static GameState gameState;
 
     @Getter
     private static int score = 0;
+    @Getter
+    private static Edict currentEdict;
     @Getter
     private static int currentTime = 0;
     @Getter
@@ -67,154 +69,211 @@ public class GameUtil {
 
     private static final Random random = new Random();
 
-    public static void initializeGame(GridPane primaryGameGridInput,
-                                      GridPane secondaryGameGridInput,
-                                      VBox cardDisplayInput,
-                                      Label seasonLabelInput,
-                                      Label scoreLabelInput,
-                                      Label edictLabelInput,
-                                      GameState gameState) {
+    public static void initializeGame(GridPane primaryGameGridInput, GridPane secondaryGameGridInput, VBox cardDisplayInput,
+                                      Label seasonLabelInput, Label scoreLabelInput, Label edictLabelInput, GameState gameStateInput) {
+        setGameComponents(primaryGameGridInput, secondaryGameGridInput, cardDisplayInput, seasonLabelInput, scoreLabelInput, edictLabelInput, gameStateInput);
+        if (gameState.isLoadedGameState()) {
+            loadSavedGameState();
+        } else {
+            setupNewGame();
+            saveGameState(gameState);
+        }
+        updateMapVisuals();
+        updateUI();
+    }
+
+    private static void setGameComponents(GridPane primaryGameGridInput, GridPane secondaryGameGridInput, VBox cardDisplayInput,
+                                          Label seasonLabelInput, Label scoreLabelInput, Label edictLabelInput, GameState gameStateInput) {
         primaryGameGrid = primaryGameGridInput;
         secondaryGameGrid = secondaryGameGridInput;
         cardDisplay = cardDisplayInput;
         seasonLabel = seasonLabelInput;
         scoreLabel = scoreLabelInput;
         edictLabel = edictLabelInput;
+        gameState = gameStateInput;
+    }
 
-        if (gameState.isLoadedGameState()) {
-            restoreFromGameState(gameState);
-        } else {
-            for (int row = 0; row < GRID_ROWS; row++) {
-                for (int col = 0; col < GRID_COLUMNS; col++) {
-                    terrainTypeMap[row][col] = TerrainType.EMPTY;
-                    isRuins[row][col] = false;
-                }
-            }
-
-            int mountainsPlaced = 0;
-            while (mountainsPlaced < 5) {
-                int row = random.nextInt(GRID_ROWS);
-                int col = random.nextInt(GRID_COLUMNS);
-                if (terrainTypeMap[row][col] == TerrainType.EMPTY) {
-                    terrainTypeMap[row][col] = TerrainType.MOUNTAIN;
-                    mountainsPlaced++;
-                }
-            }
-
-            int ruinsPlaced = 0;
-            while (ruinsPlaced < 5) {
-                int row = random.nextInt(GRID_ROWS);
-                int col = random.nextInt(GRID_COLUMNS);
-                if (terrainTypeMap[row][col] == TerrainType.EMPTY && !isRuins[row][col]) {
-                    isRuins[row][col] = true;
-                    ruinsPlaced++;
-                }
-            }
-
-            currentSeason = Season.SPRING;
-            score = 0;
-            currentTime = 0;
-            Collections.shuffle(edicts);
-            currentEdicts.add(edicts.get(0));
-            currentEdicts.add(edicts.get(1));
-            initializeExploreDeck();
-            drawNextCard();
+    private static void loadSavedGameState() {
+        gameStateToGridPane(primaryGameGrid, gameState.getPrimaryGrid());
+        gameStateToGridPane(secondaryGameGrid, gameState.getSecondaryGrid());
+        currentSeason = gameState.getCurrentSeason();
+        score = gameState.getCurrentPlayerGameState().getScore();
+        exploreDeck = new ArrayList<>(gameState.getExploreDeck());
+        currentEdict = gameState.getCurrentEdict();
+        currentCard = gameState.getCurrentCard();
+        currentShape = gameState.getCurrentShape();
+        ruinsPending = gameState.isRuinsPending();
+        if (currentCard != null) {
+            updateCardDisplay();
         }
+    }
 
+    private static void setupNewGame() {
+        placeInitialTerrain(TerrainType.MOUNTAIN);
+        placeInitialTerrain(TerrainType.RUINS);
+        Collections.shuffle(edicts);
+        currentEdict = edicts.getFirst();
+        currentSeason = gameState.getCurrentSeason();
+        score = gameState.getCurrentPlayerGameState().getScore();
+        initializeExploreDeck();
+        drawNextCard();
+    }
+
+    private static void placeInitialTerrain(TerrainType terrainType) {
+        CellState[][] currentPlayerGrid = gameState.getPrimaryGrid();
+        CellState[][] otherPlayerGrid = gameState.getSecondaryGrid();
+        int placed = 0;
+        while (placed < NUMBER_OF_SPECIAL_TERRAIN_TYPES) {
+            int row = random.nextInt(GRID_ROWS);
+            int col = random.nextInt(GRID_COLUMNS);
+            if (currentPlayerGrid[row][col].getTerrainType() == TerrainType.EMPTY) {
+                currentPlayerGrid[row][col].setTerrainType(terrainType);
+                otherPlayerGrid[row][col].setTerrainType(terrainType);
+                placed++;
+            }
+        }
+    }
+
+    private static void saveGameState(GameState changedGameState) {
+        changedGameState.setCurrentSeason(currentSeason);
+        changedGameState.setExploreDeck(exploreDeck);
+        changedGameState.setCurrentTime(currentTime);
+        changedGameState.setCurrentCard(currentCard);
+        changedGameState.setCurrentShape(currentShape);
+        changedGameState.setCurrentEdict(currentEdict);
+        changedGameState.setEdicts(edicts);
+        changedGameState.setRuinsPending(false);
+        changedGameState.getPlayerTurn().clear();
+    }
+
+    public static void updateGameState(GameState refreshedGameState) {
+        if (secondaryGameGrid == null) {
+            return;
+        }
+        gameState.updateGameState(refreshedGameState);
+        gameStateToGridPane(secondaryGameGrid, gameState.getSecondaryGrid());
+        updateGameStateValues();
+        if (currentCard != null) {
+            updateCardDisplay();
+        }
         updateMapVisuals();
         updateUI();
     }
 
+    private static void updateGameStateValues() {
+        currentSeason = gameState.getCurrentSeason();
+        score = gameState.getCurrentPlayerGameState().getScore();
+        exploreDeck = new ArrayList<>(gameState.getExploreDeck());
+        currentCard = gameState.getCurrentCard();
+        currentShape = gameState.getCurrentShape();
+        ruinsPending = gameState.isRuinsPending();
+        Collections.shuffle(edicts);
+        currentEdict = gameState.getCurrentEdict();
+    }
+
     public static void highlightShape(MouseEvent event, boolean shouldHighlight) {
-        if (currentSeason.isEnd())
+        if (isHighlightInvalid()) {
             return;
+        }
 
         Pane hoveredPane = (Pane) event.getSource();
         Integer row = GridPane.getRowIndex(hoveredPane);
         Integer col = GridPane.getColumnIndex(hoveredPane);
 
-        if (row == null || col == null || currentShape == null)
+        if (row == null || col == null || currentShape == null) {
             return;
+        }
 
         drawShape(row, col, shouldHighlight);
     }
 
-    public static void placeShape(MouseEvent event, GameState gameState) {
-        if (currentSeason.isEnd())
-            return;
+    private static boolean isHighlightInvalid() {
+        return currentSeason.isEnd() || gameState.hasPlayerPlayed();
+    }
+
+    public static boolean placeShape(MouseEvent event, GameState gameState) {
+        if (currentSeason.isEnd() || gameState.hasPlayerPlayed()) {
+            return false;
+        }
 
         Pane clickedPane = (Pane) event.getSource();
         Integer row = GridPane.getRowIndex(clickedPane);
         Integer col = GridPane.getColumnIndex(clickedPane);
 
-        if (row == null || col == null || currentShape == null || currentTerrain == null)
-            return;
+        if (row == null || col == null || currentShape == null || currentTerrain == null) {
+            return false;
+        }
 
         int adjustedBaseRow = adjustCoordinate(row, currentShape.stream().mapToInt(o -> o[0]).min().orElse(0), currentShape.stream().mapToInt(o -> o[0]).max().orElse(0));
         int adjustedBaseCol = adjustCoordinate(col, currentShape.stream().mapToInt(o -> o[1]).min().orElse(0), currentShape.stream().mapToInt(o -> o[1]).max().orElse(0));
 
-        boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol);
-        if (isLegal) {
-            for (int[] offset : currentShape) {
-                int newRow = adjustedBaseRow + offset[0];
-                int newCol = adjustedBaseCol + offset[1];
-                terrainTypeMap[newRow][newCol] = currentTerrain;
-                Pane pane = getPaneAt(primaryGameGrid, newRow, newCol);
-
-                if (pane != null)
-                    updatePaneStyle(terrainTypeMap, isRuins, pane, newRow, newCol);
-            }
-
-            if (ruinsPending)
-                ruinsPending = false;
-
-            drawNextCard();
+        if (!isPlacementLegal(adjustedBaseRow, adjustedBaseCol)) {
+            return false;
         }
 
-        gameState.setPrimaryGrid(gridPaneToCellState(primaryGameGrid));
-        gameState.setSecondaryGrid(gridPaneToCellState(secondaryGameGrid));
-        gameState.setCurrentShape(currentShape);
-        gameState.setCurrentTerrain(currentTerrain);
-        gameState.setCurrentSeason(currentSeason);
-        gameState.setCurrentTime(currentTime);
-        gameState.setCurrentCard(currentCard);
-        gameState.setExploreDeck(exploreDeck);
-        gameState.setRuinsPending(ruinsPending);
-        gameState.setScore(score);
+        placeShapeOnGrid(adjustedBaseRow, adjustedBaseCol);
+        updateGameStateAfterPlacement(gameState);
+
+        return true;
+    }
+
+    private static void placeShapeOnGrid(int baseRow, int baseCol) {
+        for (int[] offset : currentShape) {
+            int newRow = baseRow + offset[0];
+            int newCol = baseCol + offset[1];
+            CellState cellState = gameState.getPrimaryGrid()[newRow][newCol];
+            cellState.setTerrainType(currentTerrain);
+            Pane pane = getPaneAt(primaryGameGrid, newRow, newCol);
+            updatePaneStyle(cellState, pane);
+        }
+    }
+
+    private static void updateGameStateAfterPlacement(GameState gameState) {
+        if (ruinsPending) {
+            ruinsPending = false;
+        }
+
+        gameState.setRuinsPending(false);
+        gameState.addPlayerToTurn();
+        if (gameState.haveBothPlayersPlayed()) {
+            drawNextCard();
+            saveGameState(gameState);
+        }
     }
 
     private static void updateUI() {
-        if (!currentSeason.isEnd()) {
-            seasonLabel.setText(currentSeason.getLabel());
-            edictLabel.setText("Edicts: " + currentEdicts.get(0).getName() + " / " + currentEdicts.get(1).getName());
-        } else {
-            seasonLabel.setText("Game Over");
-            edictLabel.setText("Final Score: " + score);
-        }
-
+        seasonLabel.setText(getSeasonText());
         scoreLabel.setText("Score: " + score);
+        edictLabel.setText(getEdictText());
+    }
+
+    private static String getSeasonText() {
+        if (currentSeason.isEnd()) {
+            return "Game Over";
+        }
+        return currentSeason.getLabel();
+    }
+
+    private static String getEdictText() {
+        if (currentSeason.isEnd()) {
+            String playerResult = "\nYou " + (gameState.hasHigherScore() ? "won" : "lost") + "!";
+            return "Final Score: " + score + (!getPlayer().equals(SINGLE_PLAYER) ? playerResult : " DRAW!");
+        }
+        return "Edict: " + currentEdict.getName();
     }
 
     private static void updateMapVisuals() {
-        for (javafx.scene.Node node : primaryGameGrid.getChildren()) {
+        updateGridVisuals(primaryGameGrid, gameState.getPrimaryGrid());
+        updateGridVisuals(secondaryGameGrid, gameState.getSecondaryGrid());
+    }
+
+    private static void updateGridVisuals(GridPane gridPane, CellState[][] grid) {
+        for (javafx.scene.Node node : gridPane.getChildren()) {
             if (node instanceof Pane pane) {
                 Integer row = GridPane.getRowIndex(pane);
                 Integer col = GridPane.getColumnIndex(pane);
-
-                if (row != null && col != null) {
-                    updatePaneStyle(terrainTypeMap, isRuins, pane, row, col);
-                }
-            }
-        }
-
-        for (javafx.scene.Node node : secondaryGameGrid.getChildren()) {
-            if (node instanceof Pane pane) {
-                Integer row = GridPane.getRowIndex(pane);
-                Integer col = GridPane.getColumnIndex(pane);
-
-                if (row != null && col != null) {
-                    updatePaneStyle(terrainTypeMap, isRuins, pane, row, col);
-                }
+                CellState cellState = grid[row][col];
+                updatePaneStyle(cellState, pane);
             }
         }
     }
@@ -225,25 +284,25 @@ public class GameUtil {
     }
 
     private static void drawNextCard() {
-        if (currentSeason.equals(Season.END))
+        if (currentSeason.equals(Season.END)) {
             return;
-
-        if (!exploreDeck.isEmpty()) {
-            currentCard = exploreDeck.removeFirst();
-            if (currentCard.isRuins()) {
-                ruinsPending = true;
-                drawNextCard();
-            } else if (currentCard.isAmbush()) {
-                handleAmbush();
-            } else {
-                updateCardDisplay();
-                currentTime += currentCard.getTime();
-                if (currentTime >= currentSeason.getThreshold()) {
-                    endSeason();
-                }
-            }
-        } else {
+        }
+        if (exploreDeck.isEmpty()) {
             endSeason();
+            return;
+        }
+        currentCard = exploreDeck.removeFirst();
+        if (currentCard.isRuins()) {
+            ruinsPending = true;
+            drawNextCard();
+        } else if (currentCard.isAmbush()) {
+            handleAmbush();
+        } else {
+            updateCardDisplay();
+            currentTime += currentCard.getTime();
+            if (currentTime >= currentSeason.getThreshold()) {
+                endSeason();
+            }
         }
     }
 
@@ -252,88 +311,106 @@ public class GameUtil {
         int corner = random.nextInt(4);
         int baseRow = corner < 2 ? 0 : 10;
         int baseCol = corner % 2 == 0 ? 0 : 10;
-        boolean placed = false;
-
-        for (int row = 0; row < GRID_ROWS && !placed; row++) {
-            for (int col = 0; col < GRID_COLUMNS && !placed; col++) {
-                boolean canPlace = true;
-                for (int[] offset : ambushShape) {
-                    int newRow = baseRow + row + offset[0];
-                    int newCol = baseCol + col + offset[1];
-
-                    if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
-                        canPlace = false;
-                        break;
-                    }
-                }
-                if (canPlace) {
-                    for (int[] offset : ambushShape) {
-                        int newRow = baseRow + row + offset[0];
-                        int newCol = baseCol + col + offset[1];
-                        terrainTypeMap[newRow][newCol] = TerrainType.MONSTER;
-                        Pane pane = getPaneAt(primaryGameGrid, newRow, newCol);
-
-                        if (pane != null)
-                            updatePaneStyle(terrainTypeMap, isRuins, pane, newRow, newCol);
-                    }
-
-                    placed = true;
-                }
-            }
-        }
-
+        tryPlaceAmbush(ambushShape, baseRow, baseCol);
         drawNextCard();
     }
 
-    private static void endSeason() {
-        int seasonScore = currentEdicts.get(0).score(terrainTypeMap) + currentEdicts.get(1).score(terrainTypeMap);
-
-        for (int row = 0; row < GRID_ROWS; row++) {
-            for (int col = 0; col < GRID_COLUMNS; col++) {
-                if (terrainTypeMap[row][col] == TerrainType.MONSTER) {
-                    if (row > 0 && terrainTypeMap[row - 1][col] == TerrainType.EMPTY)
-                        seasonScore--;
-
-                    if (row < 10 && terrainTypeMap[row + 1][col] == TerrainType.EMPTY)
-                        seasonScore--;
-
-                    if (col > 0 && terrainTypeMap[row][col - 1] == TerrainType.EMPTY)
-
-                        seasonScore--;
-                    if (col < 10 && terrainTypeMap[row][col + 1] == TerrainType.EMPTY)
-                        seasonScore--;
+    private static void tryPlaceAmbush(List<int[]> ambushShape, int baseRow, int baseCol) {
+        int maxRow = baseRow == 0 ? GRID_ROWS : GRID_ROWS - 1;
+        int maxCol = baseCol == 0 ? GRID_COLUMNS : GRID_COLUMNS - 1;
+        for (int row = 0; row < maxRow; row++) {
+            for (int col = 0; col < maxCol; col++) {
+                if (isAmbushPlacementValid(ambushShape, baseRow, baseCol, row, col)) {
+                    placeAmbushShape(ambushShape, baseRow, baseCol, row, col);
                 }
             }
         }
+    }
 
+    private static boolean isAmbushPlacementValid(List<int[]> ambushShape, int baseRow, int baseCol, int row, int col) {
+        for (int[] offset : ambushShape) {
+            int newRow = baseRow + row + offset[0];
+            int newCol = baseCol + col + offset[1];
+            if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS) {
+                return false;
+            }
+            CellState currentPlayerCellState = gameState.getPrimaryGrid()[newRow][newCol];
+            CellState otherPlayerCellState = gameState.getSecondaryGrid()[newRow][newCol];
+            if (currentPlayerCellState.getTerrainType().isNotEmptyOrRuins() ||
+                    otherPlayerCellState.getTerrainType().isNotEmptyOrRuins()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void placeAmbushShape(List<int[]> ambushShape, int baseRow, int baseCol, int row, int col) {
+        for (int[] offset : ambushShape) {
+            int newRow = baseRow + row + offset[0];
+            int newCol = baseCol + col + offset[1];
+            for (GridPane gridPane : Set.of(primaryGameGrid, secondaryGameGrid)) {
+                Pane pane = getPaneAt(gridPane, newRow, newCol);
+                CellState currentPlayerCellState = gameState.getPrimaryGrid()[newRow][newCol];
+                CellState otherPlayerCellState = gameState.getSecondaryGrid()[newRow][newCol];
+                currentPlayerCellState.setTerrainType(TerrainType.MONSTER);
+                otherPlayerCellState.setTerrainType(TerrainType.MONSTER);
+                updatePaneStyle(currentPlayerCellState, pane);
+                updatePaneStyle(otherPlayerCellState, pane);
+            }
+        }
+    }
+
+    private static void endSeason() {
+        int seasonScore = calculateSeasonScore();
         score += seasonScore;
         currentSeason = currentSeason.incrementSeason();
-
         if (!currentSeason.isEnd()) {
-            currentEdicts.clear();
-            currentEdicts.add(edicts.get(currentSeason.getPosition() % 2));
-            currentEdicts.add(edicts.get(2 + (currentSeason.getPosition() / 2)));
+            currentEdict = edicts.get(currentSeason.getPosition() % 2);
             currentTime = 0;
             initializeExploreDeck();
             drawNextCard();
             updateUI();
         } else {
-            cardDisplay.getChildren().clear();
-            for (javafx.scene.Node node : primaryGameGrid.getChildren()) {
-                if (node instanceof Pane) {
-                    node.setDisable(true);
+            disableGame();
+            updateUI();
+        }
+    }
+
+    private static int calculateSeasonScore() {
+        CellState[][] currentPlayerGrid = gameState.getPrimaryGrid();
+        int seasonScore = currentEdict.score(currentPlayerGrid);
+        for (int row = 0; row < GRID_ROWS; row++) {
+            for (int col = 0; col < GRID_COLUMNS; col++) {
+                if (currentPlayerGrid[row][col].getTerrainType() == TerrainType.MONSTER) {
+                    seasonScore -= countAdjacentEmpty(currentPlayerGrid, row, col);
                 }
             }
+        }
+        return seasonScore;
+    }
 
-            updateUI();
+    private static int countAdjacentEmpty(CellState[][] grid, int row, int col) {
+        int count = 0;
+        if (row > 0 && grid[row - 1][col].getTerrainType() == TerrainType.EMPTY) count++;
+        if (row < 10 && grid[row + 1][col].getTerrainType() == TerrainType.EMPTY) count++;
+        if (col > 0 && grid[row][col - 1].getTerrainType() == TerrainType.EMPTY) count++;
+        if (col < 10 && grid[row][col + 1].getTerrainType() == TerrainType.EMPTY) count++;
+        return count;
+    }
+
+    private static void disableGame() {
+        cardDisplay.getChildren().clear();
+        for (javafx.scene.Node node : primaryGameGrid.getChildren()) {
+            if (node instanceof Pane) {
+                node.setDisable(true);
+            }
         }
     }
 
     private static void updateCardDisplay() {
         cardDisplay.getChildren().clear();
         if (currentCard != null) {
-            Label title = new Label(currentCard.getName() + " (Time: " + currentCard.getTime() + ")");
-            cardDisplay.getChildren().add(title);
+            cardDisplay.getChildren().add(new Label(currentCard.getName() + " (Time: " + currentCard.getTime() + ")"));
             for (List<int[]> shape : currentCard.getShapes()) {
                 for (TerrainType terrain : currentCard.getTerrains()) {
                     Button option = new Button(terrain.name());
@@ -341,7 +418,6 @@ public class GameUtil {
                         currentShape = shape;
                         currentTerrain = terrain;
                     });
-
                     cardDisplay.getChildren().add(option);
                 }
             }
@@ -349,12 +425,8 @@ public class GameUtil {
     }
 
     private static int adjustCoordinate(int base, int minOffset, int maxOffset) {
-        if (base + maxOffset >= 11)
-            return 11 - 1 - maxOffset;
-
-        if (base + minOffset < 0)
-            return -minOffset;
-
+        if (base + maxOffset >= 11) return 11 - 1 - maxOffset;
+        if (base + minOffset < 0) return -minOffset;
         return base;
     }
 
@@ -364,11 +436,16 @@ public class GameUtil {
             int newRow = baseRow + offset[0];
             int newCol = baseCol + offset[1];
 
-            if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
+            CellState currentPlayerCellState = gameState.getPrimaryGrid()[newRow][newCol];
+
+            if (newRow >= GRID_ROWS ||
+                    newCol >= GRID_ROWS ||
+                    currentPlayerCellState.getTerrainType().isNotEmptyOrRuins()
+            ) {
                 return false;
             }
 
-            if (isRuins[newRow][newCol])
+            if (currentPlayerCellState.getTerrainType() == TerrainType.RUINS)
                 overlapsRuins = true;
         }
 
@@ -381,12 +458,17 @@ public class GameUtil {
                         int newRow = row + offset[0];
                         int newCol = col + offset[1];
 
-                        if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS || terrainTypeMap[newRow][newCol] != TerrainType.EMPTY) {
+                        CellState currentPlayerCellState = gameState.getPrimaryGrid()[newRow][newCol];
+
+                        if (newRow >= GRID_ROWS ||
+                                newCol >= GRID_COLUMNS ||
+                                currentPlayerCellState.getTerrainType().isNotEmptyOrRuins()
+                        ) {
                             canPlace = false;
                             break;
                         }
 
-                        if (isRuins[newRow][newCol])
+                        if (currentPlayerCellState.getTerrainType() == TerrainType.RUINS)
                             hasRuins = true;
                     }
 
@@ -400,56 +482,40 @@ public class GameUtil {
     }
 
     private static void drawShape(int baseRow, int baseCol, boolean shouldHighlight) {
-        if (currentShape == null)
+        if (currentShape == null) {
             return;
+        }
 
         int adjustedBaseRow = adjustCoordinate(baseRow, currentShape.stream().mapToInt(o -> o[0]).min().orElse(0), currentShape.stream().mapToInt(o -> o[0]).max().orElse(0));
         int adjustedBaseCol = adjustCoordinate(baseCol, currentShape.stream().mapToInt(o -> o[1]).min().orElse(0), currentShape.stream().mapToInt(o -> o[1]).max().orElse(0));
-
         boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol);
+        Set<String> shapePositions = getShapePositions(adjustedBaseRow, adjustedBaseCol);
+        drawShapePositions(adjustedBaseRow, adjustedBaseCol, shouldHighlight, isLegal, shapePositions);
+    }
+
+    private static Set<String> getShapePositions(int baseRow, int baseCol) {
         Set<String> shapePositions = new HashSet<>();
         for (int[] offset : currentShape) {
-            int newRow = adjustedBaseRow + offset[0];
-            int newCol = adjustedBaseCol + offset[1];
+            int newRow = baseRow + offset[0];
+            int newCol = baseCol + offset[1];
             shapePositions.add(newRow + "," + newCol);
         }
+        return shapePositions;
+    }
 
+    private static void drawShapePositions(int baseRow, int baseCol, boolean shouldHighlight, boolean isLegal, Set<String> shapePositions) {
         for (int[] offset : currentShape) {
-            int newRow = adjustedBaseRow + offset[0];
-            int newCol = adjustedBaseCol + offset[1];
+            int newRow = baseRow + offset[0];
+            int newCol = baseCol + offset[1];
             Pane pane = getPaneAt(primaryGameGrid, newRow, newCol);
             if (pane != null) {
                 if (shouldHighlight) {
                     highlightPane(pane, newRow, newCol, shapePositions, isLegal);
                 } else {
-                    updatePaneStyle(terrainTypeMap, isRuins, pane, newRow, newCol);
+                    CellState cellState = gameState.getPrimaryGrid()[newRow][newCol];
+                    updatePaneStyle(cellState, pane);
                 }
             }
-        }
-    }
-
-    private static void restoreFromGameState(GameState gameState) {
-        for (int row = 0; row < GRID_ROWS; row++) {
-            for (int col = 0; col < GRID_COLUMNS; col++) {
-                terrainTypeMap[row][col] = gameState.getPrimaryGrid()[row][col].getTerrainType();
-                isRuins[row][col] = gameState.getPrimaryGrid()[row][col].isRuins();
-            }
-        }
-
-        gameStateToGridPane(primaryGameGrid, gameState.getPrimaryGrid());
-        gameStateToGridPane(secondaryGameGrid, gameState.getSecondaryGrid());
-
-        currentSeason = gameState.getCurrentSeason();
-        score = gameState.getScore();
-        currentTime = gameState.getCurrentTime();
-        exploreDeck = new ArrayList<>(gameState.getExploreDeck());
-        currentCard = gameState.getCurrentCard();
-        currentShape = gameState.getCurrentShape() != null ? new ArrayList<>(gameState.getCurrentShape()) : null;
-        currentTerrain = gameState.getCurrentTerrain();
-        ruinsPending = gameState.isRuinsPending();
-
-        if (currentCard != null) {
-            updateCardDisplay();
         }
     }
 }

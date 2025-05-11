@@ -31,13 +31,12 @@ public class ReplayUtil {
                     return;
                 }
 
-                List<GameState> currentGameState = new ArrayList<>();
                 Object obj = currentGameInputStream.readObject();
                 if (obj instanceof List) {
-                    currentGameState.addAll((List<GameState>) obj);
+                    List<GameState> currentGameState = new ArrayList<>((List<GameState>) obj);
                     saveGameStatesToXmlFile(currentGameState);
                 }
-            } catch (EOFException e) {
+            } catch (EOFException _) {
                 log.info("The game state file is empty");
             } catch (IOException | ClassNotFoundException e) {
                 throw new CustomException("Error reading game state from file " + GAME_STATE_FILE_PATH, e);

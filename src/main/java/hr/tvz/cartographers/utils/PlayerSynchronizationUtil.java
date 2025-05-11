@@ -11,8 +11,8 @@ import static hr.tvz.cartographers.utils.GameStateUtil.startSaveGameStateThread;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PlayerSynchronizationUtil {
 
-    public static void startServerThreads(GameState gameState) {
-        PlayerServerThread playerServerThread = new PlayerServerThread(gameState);
+    public static synchronized void startServerThreads() {
+        PlayerServerThread playerServerThread = new PlayerServerThread();
         Thread thread = new Thread(playerServerThread);
         thread.start();
     }

@@ -16,5 +16,4 @@ public class CellState implements Serializable {
 
     private String style;
     private TerrainType terrainType = TerrainType.EMPTY;
-    private boolean isRuins = false;
 }

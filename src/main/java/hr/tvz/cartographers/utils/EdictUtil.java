@@ -6,94 +6,45 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
+import static hr.tvz.cartographers.enums.ScoringType.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class EdictUtil {
 
-    public static List<Edict> generateEdicts() {
+    public static List<Edict> getEdicts() {
         return new ArrayList<>(edicts);
     }
 
     private static final List<Edict> edicts = List.of(
-            new Edict("A - The Queen's Arbors", map -> {
-                int points = 0;
-                boolean[][] visited = new boolean[11][11]; // To avoid modifying the map
-                for (int i = 0; i < 11; i++) {
-                    for (int j = 0; j < 11; j++) {
-                        if (map[i][j] == TerrainType.FOREST && !visited[i][j]) {
-                            int size = getClusterSize(i, j, TerrainType.FOREST, map, visited);
-                            points += size <= 3 ? size : 0;
-                        }
-                    }
-                }
-
-                return points;
-            }),
-            new Edict("B - Canal Lake", map -> {
-                int points = 0;
-                for (int i = 0; i < 11; i++) {
-                    for (int j = 0; j < 11; j++) {
-                        if (map[i][j] == TerrainType.WATER) {
-                            if ((i > 0 && map[i - 1][j] == TerrainType.FARM) ||
-                                    (i < 10 && map[i + 1][j] == TerrainType.FARM) ||
-                                    (j > 0 && map[i][j - 1] == TerrainType.FARM) ||
-                                    (j < 10 && map[i][j + 1] == TerrainType.FARM)) {
-                                points += 2;
-                            }
-                        }
-                    }
-                }
-
-                return points;
-            }),
-            new Edict("C - Wildholds", map -> {
-                int points = 0;
-                boolean[][] visited = new boolean[11][11];
-                for (int i = 0; i < 11; i++) {
-                    for (int j = 0; j < 11; j++) {
-                        if (map[i][j] == TerrainType.VILLAGE && !visited[i][j]) {
-                            int size = getClusterSize(i, j, TerrainType.VILLAGE, map, visited);
-                            if (size >= 6) points += 8; // Per rulebook: 8 points per cluster of 6+ village spaces
-                        }
-                    }
-                }
-
-                return points;
-            }),
-            new Edict("D - Greengold Plains", map -> {
-                int points = 0;
-                for (int i = 0; i < 11; i++) {
-                    for (int j = 0; j < 11; j++) {
-                        if (map[i][j] != TerrainType.EMPTY && map[i][j] != TerrainType.MOUNTAIN) {
-                            Set<TerrainType> adjacentTypes = new HashSet<>();
-                            if (i > 0 && map[i - 1][j] != TerrainType.EMPTY) adjacentTypes.add(map[i - 1][j]);
-                            if (i < 10 && map[i + 1][j] != TerrainType.EMPTY) adjacentTypes.add(map[i + 1][j]);
-                            if (j > 0 && map[i][j - 1] != TerrainType.EMPTY) adjacentTypes.add(map[i][j - 1]);
-                            if (j < 10 && map[i][j + 1] != TerrainType.EMPTY) adjacentTypes.add(map[i][j + 1]);
-                            if (adjacentTypes.size() >= 3)
-                                points += 3; // 3 points per space adjacent to 3+ terrain types
-                        }
-                    }
-                }
-
-                return points;
-            })
+            new Edict("A - The Queen's Arbors",
+                    TerrainType.FOREST,
+                    null,
+                    ROW_COLUMN_COUNT,
+                    2, // 2 points per row/column
+                    3  // Exactly 3 forest spaces
+            ),
+            new Edict("B - Canal Lake",
+                    TerrainType.WATER,
+                    TerrainType.VILLAGE,
+                    ADJACENT,
+                    3, // 3 points per water space adjacent to village
+                    0  // No count needed
+            ),
+            new Edict("C - Wildholds",
+                    TerrainType.VILLAGE,
+                    null,
+                    SQUARE,
+                    4, // 4 points per 2x2 village square
+                    4  // 4 spaces in a 2x2 square
+            ),
+            new Edict("D - Greengold Plains",
+                    TerrainType.FARM,
+                    TerrainType.WATER,
+                    BASE_PLUS_BONUS,
+                    1, // 1 point per farm space
+                    0  // No count needed, +2 bonus for adjacent water
+            )
     );
-
-    private static int getClusterSize(int row, int col, TerrainType type, TerrainType[][] map, boolean[][] visited) {
-        if (row < 0 || row >= 11 || col < 0 || col >= 11 || map[row][col] != type || visited[row][col])
-            return 0;
-
-        visited[row][col] = true;
-        int size = 1;
-        size += getClusterSize(row - 1, col, type, map, visited);
-        size += getClusterSize(row + 1, col, type, map, visited);
-        size += getClusterSize(row, col - 1, type, map, visited);
-        size += getClusterSize(row, col + 1, type, map, visited);
-
-        return size;
-    }
 }

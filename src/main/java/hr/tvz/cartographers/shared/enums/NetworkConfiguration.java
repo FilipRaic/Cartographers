@@ -19,12 +19,22 @@ public enum NetworkConfiguration {
 
     private final String value;
 
-    public static Optional<NetworkConfiguration> getPlayerPortConfiguration() {
+    public static Optional<NetworkConfiguration> getPlayerServerPortConfiguration() {
         Player player = getPlayer();
 
         return Optional.ofNullable(switch (player) {
             case PLAYER_ONE -> PLAYER_ONE_SERVER_PORT;
             case PLAYER_TWO -> PLAYER_TWO_SERVER_PORT;
+            default -> null;
+        });
+    }
+
+    public static Optional<NetworkConfiguration> getPlayerClientPortConfiguration() {
+        Player player = getPlayer();
+
+        return Optional.ofNullable(switch (player) {
+            case PLAYER_ONE -> PLAYER_TWO_SERVER_PORT;
+            case PLAYER_TWO -> PLAYER_ONE_SERVER_PORT;
             default -> null;
         });
     }

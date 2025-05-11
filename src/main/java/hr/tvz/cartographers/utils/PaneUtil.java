@@ -2,6 +2,7 @@ package hr.tvz.cartographers.utils;
 
 
 import hr.tvz.cartographers.enums.TerrainType;
+import hr.tvz.cartographers.models.CellState;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import lombok.AccessLevel;
@@ -37,17 +38,19 @@ public class PaneUtil {
         borderWidth.append(!shapePositions.contains(bottom) ? "2 " : "0 ");
         borderWidth.append(!shapePositions.contains(left) ? "2" : "0");
         style.append(borderWidth);
+
         pane.setStyle(style.toString());
     }
 
-    public static void updatePaneStyle(TerrainType[][] terrainTypeMap, boolean[][] isRuins, Pane pane, int row, int col) {
-        TerrainType terrain = terrainTypeMap[row][col];
+    public static void updatePaneStyle(CellState cellState, Pane pane) {
+        TerrainType terrain = cellState.getTerrainType();
         String style = "-fx-background-color: " + terrain.getColor() + ";";
 
-        if (isRuins[row][col] && terrain == TerrainType.EMPTY) {
+        if (terrain == TerrainType.RUINS) {
             style += "-fx-border-color: black; -fx-border-width: 2;";
         }
 
         pane.setStyle(style);
+        cellState.setStyle(style);
     }
 }

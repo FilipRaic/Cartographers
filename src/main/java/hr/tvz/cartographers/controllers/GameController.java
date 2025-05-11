@@ -2,8 +2,6 @@ package hr.tvz.cartographers.controllers;
 
 import hr.tvz.cartographers.models.GameState;
 import hr.tvz.cartographers.shared.enums.Player;
-import hr.tvz.cartographers.shared.exception.CustomException;
-import hr.tvz.cartographers.shared.thread.GetLastGameStateThread;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -20,11 +18,10 @@ import static hr.tvz.cartographers.CartographersApplication.getPlayer;
 import static hr.tvz.cartographers.shared.enums.Player.*;
 import static hr.tvz.cartographers.utils.ChatUtil.getChatTimeline;
 import static hr.tvz.cartographers.utils.ChatUtil.sendChatMessage;
-import static hr.tvz.cartographers.utils.GameStateUtil.getLastGameStateTimeline;
+import static hr.tvz.cartographers.utils.GameStateUtil.getLastGameState;
 import static hr.tvz.cartographers.utils.GameUtil.*;
 import static hr.tvz.cartographers.utils.MenuUtil.returnToMenu;
 import static hr.tvz.cartographers.utils.PlayerSynchronizationUtil.saveGameState;
-import static hr.tvz.cartographers.utils.PlayerSynchronizationUtil.startServerThreads;
 import static javafx.scene.input.KeyCode.ENTER;
 
 @RequiredArgsConstructor
@@ -32,7 +29,6 @@ public class GameController {
 
     private GameState gameState;
     private Timeline chatTimeline;
-    private Timeline gameStateTimeline;
 
     @FXML
     private Label primaryPlayerLabel;
@@ -58,9 +54,8 @@ public class GameController {
     private AnchorPane chatArea;
 
     @FXML
-    public void initialize() {
+    public synchronized void initialize() {
         Player player = getPlayer();
-        gameState = new GameState();
 
         if (player.equals(SINGLE_PLAYER)) {
             this.chatArea.setVisible(false);
@@ -80,14 +75,9 @@ public class GameController {
             chatTimeline.play();
         }
 
-        startServerThreads(gameState);
-        gameStateTimeline = getLastGameStateTimeline(gameState);
-        gameStateTimeline.play();
-
-        GetLastGameStateThread getLastGameStateThread = new GetLastGameStateThread(gameState);
-        gameState = getLastGameStateThread.getGameState().orElseThrow(() -> new CustomException("Game state not found"));
-
+        gameState = getLastGameState();
         initializeGame(primaryGameGrid, secondaryGameGrid, cardDisplay, seasonLabel, scoreLabel, edictLabel, gameState);
+        saveGameState(gameState);
     }
 
     @FXML
@@ -102,8 +92,11 @@ public class GameController {
 
     @FXML
     protected void onMouseClick(MouseEvent event) {
-        placeShape(event, gameState);
-        saveGameState(gameState);
+        boolean placedShape = placeShape(event, gameState);
+
+        if (placedShape) {
+            saveGameState(gameState);
+        }
     }
 
     @FXML
@@ -117,10 +110,7 @@ public class GameController {
     @FXML
     protected void onReturnToMenu() {
         if (chatTimeline != null)
-            chatTimeline.stop();
-
-        if (gameStateTimeline != null)
-            gameStateTimeline.stop();
+            chatTimeline.pause();
 
         returnToMenu();
     }

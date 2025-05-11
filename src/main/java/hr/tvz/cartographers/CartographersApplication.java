@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static hr.tvz.cartographers.shared.enums.Player.SINGLE_PLAYER;
+import static hr.tvz.cartographers.utils.PlayerSynchronizationUtil.startServerThreads;
 
 @Slf4j
 public class CartographersApplication extends Application {
@@ -31,9 +32,10 @@ public class CartographersApplication extends Application {
         stage.show();
     }
 
-    public static void main(String[] args) {
+    public static synchronized void main(String[] args) {
         if (args.length > 0) {
             player.set(Player.valueOf(args[0]));
+            startServerThreads();
         } else {
             player.set(SINGLE_PLAYER);
         }

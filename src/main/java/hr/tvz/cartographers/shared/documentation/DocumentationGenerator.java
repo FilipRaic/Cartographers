@@ -44,7 +44,7 @@ public final class DocumentationGenerator {
         try {
             Class<?> clazz = Class.forName(className);
             documentClass(clazz, htmlBody);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException _) {
             log.error("Class not found: {}", className);
         }
     }

@@ -14,7 +14,22 @@ public enum TerrainType {
     FARM("#FFD700"),
     WATER("#00BFFF"),
     MONSTER("#8B0000"),
-    MOUNTAIN("#A9A9A9");
+    MOUNTAIN("#A9A9A9"),
+    RUINS("transparent");
 
     private final String color;
+
+    public boolean isNotEmptyOrRuins() {
+        return !this.isIn(EMPTY, RUINS);
+    }
+
+    public boolean isIn(TerrainType... terrainTypes) {
+        for (TerrainType terrainType : terrainTypes) {
+            if (this.equals(terrainType)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
