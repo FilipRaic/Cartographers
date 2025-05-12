@@ -28,15 +28,14 @@ public class PaneUtil {
     public static void highlightPane(Pane pane, int row, int col, Set<String> shapePositions, boolean isLegal) {
         String borderColor = isLegal ? "#00FF00" : "#FF0000";
         StringBuilder style = new StringBuilder("-fx-border-color: " + borderColor + "; -fx-border-width: ");
-        StringBuilder borderWidth = new StringBuilder();
         String top = (row - 1) + "," + col;
         String right = row + "," + (col + 1);
         String bottom = (row + 1) + "," + col;
         String left = row + "," + (col - 1);
-        borderWidth.append(!shapePositions.contains(top) ? "2 " : "0 ");
-        borderWidth.append(!shapePositions.contains(right) ? "2 " : "0 ");
-        borderWidth.append(!shapePositions.contains(bottom) ? "2 " : "0 ");
-        borderWidth.append(!shapePositions.contains(left) ? "2" : "0");
+        String borderWidth = (!shapePositions.contains(top) ? "2 " : "0 ") +
+                (!shapePositions.contains(right) ? "2 " : "0 ") +
+                (!shapePositions.contains(bottom) ? "2 " : "0 ") +
+                (!shapePositions.contains(left) ? "2" : "0");
         style.append(borderWidth);
 
         pane.setStyle(style.toString());
