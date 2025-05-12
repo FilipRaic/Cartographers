@@ -23,6 +23,7 @@
 .label {
     -fx-font-family: "Pristina";
     -fx-font-size: 20px;
+    -fx-word-wrap: break-word;
 }
 
 .button {

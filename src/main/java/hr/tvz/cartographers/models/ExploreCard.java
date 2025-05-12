@@ -25,10 +25,10 @@ public class ExploreCard implements Serializable {
         List<ExploreCard> exploreDeck = new ArrayList<>();
 
         exploreDeck.add(new ExploreCard("Borderlands", List.of(allUniqueShapes.get(0)), List.of(TerrainType.FARM, TerrainType.VILLAGE), 1, false, false));
-        exploreDeck.add(new ExploreCard("Farmstead", List.of(allUniqueShapes.get(2)), List.of(TerrainType.FARM), 2, false, false));
-        exploreDeck.add(new ExploreCard("Woodland", List.of(allUniqueShapes.get(3)), List.of(TerrainType.FOREST), 2, false, false));
-        exploreDeck.add(new ExploreCard("Hamlet", List.of(allUniqueShapes.get(1)), List.of(TerrainType.VILLAGE), 1, false, false));
-        exploreDeck.add(new ExploreCard("Riverside", List.of(allUniqueShapes.get(4)), List.of(TerrainType.WATER), 3, false, false));
+        exploreDeck.add(new ExploreCard("Farmstead", List.of(allUniqueShapes.get(2)), List.of(TerrainType.FARM), 4, false, false));
+        exploreDeck.add(new ExploreCard("Woodland", List.of(allUniqueShapes.get(3)), List.of(TerrainType.FOREST), 4, false, false));
+        exploreDeck.add(new ExploreCard("Hamlet", List.of(allUniqueShapes.get(1)), List.of(TerrainType.VILLAGE), 3, false, false));
+        exploreDeck.add(new ExploreCard("Riverside", List.of(allUniqueShapes.get(4)), List.of(TerrainType.WATER), 6, false, false));
         exploreDeck.add(new ExploreCard("Crossroads", List.of(allUniqueShapes.get(5)), List.of(TerrainType.FOREST, TerrainType.VILLAGE), 2, false, false));
         exploreDeck.add(new ExploreCard("Lost Barony", null, null, 0, true, false));
         exploreDeck.add(new ExploreCard("Goblin Attack", null, null, 0, false, true));

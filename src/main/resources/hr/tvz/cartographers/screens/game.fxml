@@ -579,7 +579,7 @@
         </padding>
         <Label fx:id="seasonLabel" text="Season"/>
         <Label fx:id="scoreLabel" text="Score: 0"/>
-        <Label fx:id="edictLabel" text="Edicts: "/>
+        <Label wrapText="true" fx:id="edictLabel" text="Edicts: "/>
     </VBox>
     <VBox fx:id="cardDisplay" layoutX="700.0" layoutY="233.0" prefHeight="149.0" prefWidth="200.0" spacing="10">
         <padding>

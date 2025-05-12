@@ -18,28 +18,28 @@ public final class EdictUtil {
     }
 
     private static final List<Edict> edicts = List.of(
-            new Edict("A - The Queen's Arbors",
+            new Edict("The Queen's Arbors",
                     TerrainType.FOREST,
                     null,
                     ROW_COLUMN_COUNT,
                     2, // 2 points per row/column
                     3  // Exactly 3 forest spaces
             ),
-            new Edict("B - Canal Lake",
+            new Edict("Canal Lake",
                     TerrainType.WATER,
                     TerrainType.VILLAGE,
                     ADJACENT,
                     3, // 3 points per water space adjacent to village
                     0  // No count needed
             ),
-            new Edict("C - Wildholds",
+            new Edict("Wildholds",
                     TerrainType.VILLAGE,
                     null,
                     SQUARE,
                     4, // 4 points per 2x2 village square
                     4  // 4 spaces in a 2x2 square
             ),
-            new Edict("D - Greengold Plains",
+            new Edict("Greengold Plains",
                     TerrainType.FARM,
                     TerrainType.WATER,
                     BASE_PLUS_BONUS,

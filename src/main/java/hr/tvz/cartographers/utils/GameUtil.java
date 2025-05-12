@@ -103,9 +103,9 @@ public class GameUtil {
         currentCard = gameState.getCurrentCard();
         currentShape = gameState.getCurrentShape();
         ruinsPending = gameState.isRuinsPending();
-        if (currentCard != null) {
+
+        if (currentCard != null)
             updateCardDisplay();
-        }
     }
 
     private static void setupNewGame() {
@@ -123,9 +123,11 @@ public class GameUtil {
         CellState[][] currentPlayerGrid = gameState.getPrimaryGrid();
         CellState[][] otherPlayerGrid = gameState.getSecondaryGrid();
         int placed = 0;
+
         while (placed < NUMBER_OF_SPECIAL_TERRAIN_TYPES) {
             int row = random.nextInt(GRID_ROWS);
             int col = random.nextInt(GRID_COLUMNS);
+
             if (currentPlayerGrid[row][col].getTerrainType() == TerrainType.EMPTY) {
                 currentPlayerGrid[row][col].setTerrainType(terrainType);
                 otherPlayerGrid[row][col].setTerrainType(terrainType);
@@ -150,12 +152,15 @@ public class GameUtil {
         if (secondaryGameGrid == null) {
             return;
         }
+
         gameState.updateGameState(refreshedGameState);
         gameStateToGridPane(secondaryGameGrid, gameState.getSecondaryGrid());
         updateGameStateValues();
+
         if (currentCard != null) {
             updateCardDisplay();
         }
+
         updateMapVisuals();
         updateUI();
     }
@@ -172,17 +177,15 @@ public class GameUtil {
     }
 
     public static void highlightShape(MouseEvent event, boolean shouldHighlight) {
-        if (isHighlightInvalid()) {
+        if (isHighlightInvalid())
             return;
-        }
 
         Pane hoveredPane = (Pane) event.getSource();
         Integer row = GridPane.getRowIndex(hoveredPane);
         Integer col = GridPane.getColumnIndex(hoveredPane);
 
-        if (row == null || col == null || currentShape == null) {
+        if (row == null || col == null || currentShape == null)
             return;
-        }
 
         drawShape(row, col, shouldHighlight);
     }
@@ -192,24 +195,21 @@ public class GameUtil {
     }
 
     public static boolean placeShape(MouseEvent event, GameState gameState) {
-        if (currentSeason.isEnd() || gameState.hasPlayerPlayed()) {
+        if (currentSeason.isEnd() || gameState.hasPlayerPlayed())
             return false;
-        }
 
         Pane clickedPane = (Pane) event.getSource();
         Integer row = GridPane.getRowIndex(clickedPane);
         Integer col = GridPane.getColumnIndex(clickedPane);
 
-        if (row == null || col == null || currentShape == null || currentTerrain == null) {
+        if (row == null || col == null || currentShape == null || currentTerrain == null)
             return false;
-        }
 
         int adjustedBaseRow = adjustCoordinate(row, currentShape.stream().mapToInt(o -> o[0]).min().orElse(0), currentShape.stream().mapToInt(o -> o[0]).max().orElse(0));
         int adjustedBaseCol = adjustCoordinate(col, currentShape.stream().mapToInt(o -> o[1]).min().orElse(0), currentShape.stream().mapToInt(o -> o[1]).max().orElse(0));
 
-        if (!isPlacementLegal(adjustedBaseRow, adjustedBaseCol)) {
+        if (!isPlacementLegal(adjustedBaseRow, adjustedBaseCol))
             return false;
-        }
 
         placeShapeOnGrid(adjustedBaseRow, adjustedBaseCol);
         updateGameStateAfterPlacement(gameState);
@@ -229,12 +229,12 @@ public class GameUtil {
     }
 
     private static void updateGameStateAfterPlacement(GameState gameState) {
-        if (ruinsPending) {
+        if (ruinsPending)
             ruinsPending = false;
-        }
 
         gameState.setRuinsPending(false);
         gameState.addPlayerToTurn();
+
         if (gameState.haveBothPlayersPlayed()) {
             drawNextCard();
             saveGameState(gameState);
@@ -248,9 +248,9 @@ public class GameUtil {
     }
 
     private static String getSeasonText() {
-        if (currentSeason.isEnd()) {
+        if (currentSeason.isEnd())
             return "Game Over";
-        }
+
         return currentSeason.getLabel();
     }
 
@@ -259,6 +259,7 @@ public class GameUtil {
             String playerResult = "\nYou " + (gameState.hasHigherScore() ? "won" : "lost") + "!";
             return "Final Score: " + score + (!getPlayer().equals(SINGLE_PLAYER) ? playerResult : " DRAW!");
         }
+
         return "Edict: " + currentEdict.getName();
     }
 
@@ -284,13 +285,14 @@ public class GameUtil {
     }
 
     private static void drawNextCard() {
-        if (currentSeason.equals(Season.END)) {
+        if (currentSeason.equals(Season.END))
             return;
-        }
+
         if (exploreDeck.isEmpty()) {
             endSeason();
             return;
         }
+
         currentCard = exploreDeck.removeFirst();
         if (currentCard.isRuins()) {
             ruinsPending = true;
@@ -300,6 +302,7 @@ public class GameUtil {
         } else {
             updateCardDisplay();
             currentTime += currentCard.getTime();
+
             if (currentTime >= currentSeason.getThreshold()) {
                 endSeason();
             }
@@ -308,9 +311,11 @@ public class GameUtil {
 
     private static void handleAmbush() {
         List<int[]> ambushShape = allUniqueShapes.get(random.nextInt(allUniqueShapes.size()));
+
         int corner = random.nextInt(4);
         int baseRow = corner < 2 ? 0 : 10;
         int baseCol = corner % 2 == 0 ? 0 : 10;
+
         tryPlaceAmbush(ambushShape, baseRow, baseCol);
         drawNextCard();
     }
@@ -318,10 +323,13 @@ public class GameUtil {
     private static void tryPlaceAmbush(List<int[]> ambushShape, int baseRow, int baseCol) {
         int maxRow = baseRow == 0 ? GRID_ROWS : GRID_ROWS - 1;
         int maxCol = baseCol == 0 ? GRID_COLUMNS : GRID_COLUMNS - 1;
-        for (int row = 0; row < maxRow; row++) {
-            for (int col = 0; col < maxCol; col++) {
+        boolean placed = false;
+
+        for (int row = 0; row < maxRow && !placed; row++) {
+            for (int col = 0; col < maxCol && !placed; col++) {
                 if (isAmbushPlacementValid(ambushShape, baseRow, baseCol, row, col)) {
                     placeAmbushShape(ambushShape, baseRow, baseCol, row, col);
+                    placed = true;
                 }
             }
         }
@@ -331,16 +339,18 @@ public class GameUtil {
         for (int[] offset : ambushShape) {
             int newRow = baseRow + row + offset[0];
             int newCol = baseCol + col + offset[1];
-            if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS) {
+
+            if (newRow < 0 || newRow >= GRID_ROWS || newCol < 0 || newCol >= GRID_COLUMNS)
                 return false;
-            }
+
             CellState currentPlayerCellState = gameState.getPrimaryGrid()[newRow][newCol];
             CellState otherPlayerCellState = gameState.getSecondaryGrid()[newRow][newCol];
+
             if (currentPlayerCellState.getTerrainType().isNotEmptyOrRuins() ||
-                    otherPlayerCellState.getTerrainType().isNotEmptyOrRuins()) {
+                    otherPlayerCellState.getTerrainType().isNotEmptyOrRuins())
                 return false;
-            }
         }
+
         return true;
     }
 
@@ -352,8 +362,10 @@ public class GameUtil {
                 Pane pane = getPaneAt(gridPane, newRow, newCol);
                 CellState currentPlayerCellState = gameState.getPrimaryGrid()[newRow][newCol];
                 CellState otherPlayerCellState = gameState.getSecondaryGrid()[newRow][newCol];
+
                 currentPlayerCellState.setTerrainType(TerrainType.MONSTER);
                 otherPlayerCellState.setTerrainType(TerrainType.MONSTER);
+
                 updatePaneStyle(currentPlayerCellState, pane);
                 updatePaneStyle(otherPlayerCellState, pane);
             }
@@ -386,15 +398,18 @@ public class GameUtil {
                 }
             }
         }
+
         return seasonScore;
     }
 
     private static int countAdjacentEmpty(CellState[][] grid, int row, int col) {
         int count = 0;
+
         if (row > 0 && grid[row - 1][col].getTerrainType() == TerrainType.EMPTY) count++;
         if (row < 10 && grid[row + 1][col].getTerrainType() == TerrainType.EMPTY) count++;
         if (col > 0 && grid[row][col - 1].getTerrainType() == TerrainType.EMPTY) count++;
         if (col < 10 && grid[row][col + 1].getTerrainType() == TerrainType.EMPTY) count++;
+
         return count;
     }
 
@@ -418,6 +433,7 @@ public class GameUtil {
                         currentShape = shape;
                         currentTerrain = terrain;
                     });
+
                     cardDisplay.getChildren().add(option);
                 }
             }
@@ -427,6 +443,7 @@ public class GameUtil {
     private static int adjustCoordinate(int base, int minOffset, int maxOffset) {
         if (base + maxOffset >= 11) return 11 - 1 - maxOffset;
         if (base + minOffset < 0) return -minOffset;
+
         return base;
     }
 
@@ -441,53 +458,61 @@ public class GameUtil {
             if (newRow >= GRID_ROWS ||
                     newCol >= GRID_ROWS ||
                     currentPlayerCellState.getTerrainType().isNotEmptyOrRuins()
-            ) {
+            )
                 return false;
-            }
 
             if (currentPlayerCellState.getTerrainType() == TerrainType.RUINS)
                 overlapsRuins = true;
         }
 
-        if (ruinsPending && !overlapsRuins) {
-            for (int row = 0; row < GRID_ROWS; row++) {
-                for (int col = 0; col < GRID_COLUMNS; col++) {
-                    boolean canPlace = true;
-                    boolean hasRuins = false;
-                    for (int[] offset : currentShape) {
-                        int newRow = row + offset[0];
-                        int newCol = col + offset[1];
-
-                        CellState currentPlayerCellState = gameState.getPrimaryGrid()[newRow][newCol];
-
-                        if (newRow >= GRID_ROWS ||
-                                newCol >= GRID_COLUMNS ||
-                                currentPlayerCellState.getTerrainType().isNotEmptyOrRuins()
-                        ) {
-                            canPlace = false;
-                            break;
-                        }
-
-                        if (currentPlayerCellState.getTerrainType() == TerrainType.RUINS)
-                            hasRuins = true;
-                    }
-
-                    if (canPlace && hasRuins)
-                        return false;
-                }
-            }
-        }
+        if (ruinsPending && !overlapsRuins)
+            return canPlaceTerrain();
 
         return true;
     }
 
-    private static void drawShape(int baseRow, int baseCol, boolean shouldHighlight) {
-        if (currentShape == null) {
-            return;
+    private static boolean canPlaceTerrain() {
+        for (int row = 0; row < GRID_ROWS - 1; row++) {
+            for (int col = 0; col < GRID_COLUMNS - 1; col++) {
+                if (checkTerrain(row, col))
+                    return true;
+            }
         }
+
+        return false;
+    }
+
+    private static boolean checkTerrain(int row, int col) {
+        boolean canPlace = true;
+        boolean hasRuins = false;
+        for (int[] offset : currentShape) {
+            int newRow = row + offset[0];
+            int newCol = col + offset[1];
+
+            CellState currentPlayerCellState = gameState.getPrimaryGrid()[newRow][newCol];
+
+            if (newRow >= GRID_ROWS ||
+                    newCol >= GRID_COLUMNS ||
+                    currentPlayerCellState.getTerrainType().isNotEmptyOrRuins()
+            ) {
+                canPlace = false;
+                break;
+            }
+
+            if (currentPlayerCellState.getTerrainType() == TerrainType.RUINS)
+                hasRuins = true;
+        }
+
+        return canPlace && hasRuins;
+    }
+
+    private static void drawShape(int baseRow, int baseCol, boolean shouldHighlight) {
+        if (currentShape == null)
+            return;
 
         int adjustedBaseRow = adjustCoordinate(baseRow, currentShape.stream().mapToInt(o -> o[0]).min().orElse(0), currentShape.stream().mapToInt(o -> o[0]).max().orElse(0));
         int adjustedBaseCol = adjustCoordinate(baseCol, currentShape.stream().mapToInt(o -> o[1]).min().orElse(0), currentShape.stream().mapToInt(o -> o[1]).max().orElse(0));
+
         boolean isLegal = isPlacementLegal(adjustedBaseRow, adjustedBaseCol);
         Set<String> shapePositions = getShapePositions(adjustedBaseRow, adjustedBaseCol);
         drawShapePositions(adjustedBaseRow, adjustedBaseCol, shouldHighlight, isLegal, shapePositions);
@@ -500,6 +525,7 @@ public class GameUtil {
             int newCol = baseCol + offset[1];
             shapePositions.add(newRow + "," + newCol);
         }
+
         return shapePositions;
     }
 

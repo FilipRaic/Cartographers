@@ -160,11 +160,11 @@ public final class DocumentationGenerator {
     }
 
     private static void appendParameters(Parameter[] parameters, StringBuilder builder) {
-        for (int i = 0; i < parameters.length; i++) {
-            builder.append(parameters[i].getType().getSimpleName())
-                    .append(" ").append(parameters[i].getName());
+        for (int parametersNum = 0; parametersNum < parameters.length; parametersNum++) {
+            builder.append(parameters[parametersNum].getType().getSimpleName())
+                    .append(" ").append(parameters[parametersNum].getName());
 
-            if (i < parameters.length - 1)
+            if (parametersNum < parameters.length - 1)
                 builder.append(", ");
         }
     }
@@ -178,9 +178,10 @@ public final class DocumentationGenerator {
         Class<?>[] interfaces = clazz.getInterfaces();
         if (interfaces.length > 0) {
             name.append(" implements ");
-            for (int i = 0; i < interfaces.length; i++) {
-                name.append(interfaces[i].getSimpleName());
-                if (i < interfaces.length - 1)
+            for (int interfacesNum = 0; interfacesNum < interfaces.length; interfacesNum++) {
+                name.append(interfaces[interfacesNum].getSimpleName());
+
+                if (interfacesNum < interfaces.length - 1)
                     name.append(", ");
             }
         }

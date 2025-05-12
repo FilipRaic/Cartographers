@@ -28,6 +28,8 @@ public abstract class AbstractGameStateThread {
             gameStates.add(currentGameState);
         }
 
+        createDirectoryAndFileIfNotExists();
+
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(GAME_STATE_FILE_PATH))) {
             oos.writeObject(gameStates);
         } catch (IOException e) {
@@ -91,12 +93,26 @@ public abstract class AbstractGameStateThread {
             if (obj instanceof List) {
                 gameStates.addAll((List<GameState>) obj);
             }
+
+            return gameStates;
         } catch (EOFException _) {
             return gameStates;
         } catch (IOException | ClassNotFoundException e) {
             throw new CustomException("Error reading game state from file " + GAME_STATE_FILE_PATH, e);
         }
+    }
 
-        return new ArrayList<>();
+    private static void createDirectoryAndFileIfNotExists() {
+        try {
+            Path gameStatePath = Path.of(GAME_STATE_FILE_PATH);
+
+            Files.createDirectories(gameStatePath.getParent());
+
+            if (!Files.exists(gameStatePath)) {
+                Files.createFile(gameStatePath);
+            }
+        } catch (Exception e) {
+            throw new CustomException("An error occurred while creating gameState file and/or directory", e);
+        }
     }
 }

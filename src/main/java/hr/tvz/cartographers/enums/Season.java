@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum Season {
-    SPRING(0, 8, "Spring"),
-    SUMMER(1, 7, "Summer"),
-    FALL(2, 6, "Fall"),
-    WINTER(3, 5, "Winter"),
+    SPRING(0, 20, "Spring"),
+    SUMMER(1, 19, "Summer"),
+    FALL(2, 18, "Fall"),
+    WINTER(3, 16, "Winter"),
     END(4, null, "End");
 
     private final int position;

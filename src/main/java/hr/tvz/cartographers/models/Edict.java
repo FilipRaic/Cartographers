@@ -7,6 +7,9 @@ import lombok.Getter;
 
 import java.io.Serializable;
 
+import static hr.tvz.cartographers.utils.GameUtil.GRID_COLUMNS;
+import static hr.tvz.cartographers.utils.GameUtil.GRID_ROWS;
+
 @AllArgsConstructor
 @Getter
 public class Edict implements Serializable {
@@ -33,8 +36,8 @@ public class Edict implements Serializable {
 
     private int scoreRows(CellState[][] playerGrid) {
         int totalPoints = 0;
-        for (int i = 0; i < 11; i++) {
-            int terrainCount = countTerrainInRow(playerGrid, i);
+        for (int row = 0; row < GRID_ROWS; row++) {
+            int terrainCount = countTerrainInRow(playerGrid, row);
 
             if (terrainCount == count) {
                 totalPoints += points;
@@ -46,8 +49,8 @@ public class Edict implements Serializable {
 
     private int scoreColumns(CellState[][] playerGrid) {
         int totalPoints = 0;
-        for (int j = 0; j < 11; j++) {
-            int terrainCount = countTerrainInColumn(playerGrid, j);
+        for (int col = 0; col < GRID_COLUMNS; col++) {
+            int terrainCount = countTerrainInColumn(playerGrid, col);
 
             if (terrainCount == count) {
                 totalPoints += points;
@@ -59,8 +62,8 @@ public class Edict implements Serializable {
 
     private int countTerrainInRow(CellState[][] playerGrid, int row) {
         int terrainCount = 0;
-        for (int j = 0; j < 11; j++) {
-            if (playerGrid[row][j].getTerrainType() == targetTerrain) {
+        for (int col = 0; col < GRID_COLUMNS; col++) {
+            if (playerGrid[row][col].getTerrainType() == targetTerrain) {
                 terrainCount++;
             }
         }
@@ -70,8 +73,8 @@ public class Edict implements Serializable {
 
     private int countTerrainInColumn(CellState[][] playerGrid, int col) {
         int terrainCount = 0;
-        for (int i = 0; i < 11; i++) {
-            if (playerGrid[i][col].getTerrainType() == targetTerrain) {
+        for (int row = 0; row < GRID_ROWS; row++) {
+            if (playerGrid[row][col].getTerrainType() == targetTerrain) {
                 terrainCount++;
             }
         }
@@ -81,9 +84,9 @@ public class Edict implements Serializable {
 
     private int scoreAdjacent(CellState[][] playerGrid) {
         int totalPoints = 0;
-        for (int i = 0; i < 11; i++) {
-            for (int j = 0; j < 11; j++) {
-                if (playerGrid[i][j].getTerrainType() == targetTerrain && hasAdjacentSecondary(playerGrid, i, j)) {
+        for (int row = 0; row < GRID_ROWS; row++) {
+            for (int col = 0; col < GRID_COLUMNS; col++) {
+                if (playerGrid[row][col].getTerrainType() == targetTerrain && hasAdjacentSecondary(playerGrid, row, col)) {
                     totalPoints += points;
                 }
             }
@@ -94,9 +97,9 @@ public class Edict implements Serializable {
 
     private int scoreSquare(CellState[][] playerGrid) {
         int totalPoints = 0;
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                if (isSquarePresent(playerGrid, i, j)) {
+        for (int row = 0; row < GRID_ROWS - 1; row++) {
+            for (int col = 0; col < GRID_COLUMNS - 1; col++) {
+                if (isSquarePresent(playerGrid, row, col)) {
                     totalPoints += points;
                 }
             }
@@ -105,21 +108,21 @@ public class Edict implements Serializable {
         return totalPoints;
     }
 
-    private boolean isSquarePresent(CellState[][] playerGrid, int i, int j) {
-        return playerGrid[i][j].getTerrainType() == targetTerrain &&
-                playerGrid[i][j + 1].getTerrainType() == targetTerrain &&
-                playerGrid[i + 1][j].getTerrainType() == targetTerrain &&
-                playerGrid[i + 1][j + 1].getTerrainType() == targetTerrain;
+    private boolean isSquarePresent(CellState[][] playerGrid, int row, int col) {
+        return playerGrid[row][col].getTerrainType() == targetTerrain &&
+                playerGrid[row][col + 1].getTerrainType() == targetTerrain &&
+                playerGrid[row + 1][col].getTerrainType() == targetTerrain &&
+                playerGrid[row + 1][col + 1].getTerrainType() == targetTerrain;
     }
 
     private int scoreBasePlusBonus(CellState[][] playerGrid) {
         int totalPoints = 0;
-        for (int i = 0; i < 11; i++) {
-            for (int j = 0; j < 11; j++) {
-                if (playerGrid[i][j].getTerrainType() == targetTerrain) {
+        for (int row = 0; row < GRID_ROWS - 1; row++) {
+            for (int col = 0; col < GRID_COLUMNS - 1; col++) {
+                if (playerGrid[row][col].getTerrainType() == targetTerrain) {
                     totalPoints += points;
 
-                    if (hasAdjacentSecondary(playerGrid, i, j)) {
+                    if (hasAdjacentSecondary(playerGrid, row, col)) {
                         totalPoints += 2;
                     }
                 }
@@ -129,10 +132,10 @@ public class Edict implements Serializable {
         return totalPoints;
     }
 
-    private boolean hasAdjacentSecondary(CellState[][] playerGrid, int i, int j) {
-        return (i > 0 && playerGrid[i - 1][j].getTerrainType() == secondaryTerrain) ||
-                (i < 10 && playerGrid[i + 1][j].getTerrainType() == secondaryTerrain) ||
-                (j > 0 && playerGrid[i][j - 1].getTerrainType() == secondaryTerrain) ||
-                (j < 10 && playerGrid[i][j + 1].getTerrainType() == secondaryTerrain);
+    private boolean hasAdjacentSecondary(CellState[][] playerGrid, int row, int col) {
+        return (row > 0 && playerGrid[row - 1][col].getTerrainType() == secondaryTerrain) ||
+                (row < 10 && playerGrid[row + 1][col].getTerrainType() == secondaryTerrain) ||
+                (col > 0 && playerGrid[row][col - 1].getTerrainType() == secondaryTerrain) ||
+                (col < 10 && playerGrid[row][col + 1].getTerrainType() == secondaryTerrain);
     }
 }
